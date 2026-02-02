@@ -10,7 +10,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.polidea.rxandroidble3.RxBleClient
+import com.polidea.rxandroidble3.exceptions.BleScanException
 import com.polidea.rxandroidble3.scan.ScanSettings
+import com.syncrow.R
 import com.syncrow.data.db.*
 import com.syncrow.hal.IRowingMachine
 import com.syncrow.hal.IHeartRateMonitor
@@ -31,6 +33,9 @@ import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 enum class SessionState {
     IDLE, ROWING, PAUSED
@@ -46,6 +51,10 @@ data class DiscoveredDevice(
     val rssi: Int,
     val type: DeviceType
 )
+
+sealed class ToastEvent {
+    data class Resource(val resId: Int, val args: List<Any> = emptyList()) : ToastEvent()
+}
 
 class WorkoutViewModel(
     application: Application,
@@ -94,6 +103,9 @@ class WorkoutViewModel(
 
     private val _selectedHrmAddress = MutableStateFlow<String?>(null)
     val selectedHrmAddress: StateFlow<String?> = _selectedHrmAddress.asStateFlow()
+
+    private val _toastEvent = MutableSharedFlow<ToastEvent>()
+    val toastEvent = _toastEvent.asSharedFlow()
 
     private var currentWorkoutId: Long? = null
     private var timerJob: Job? = null
@@ -208,7 +220,15 @@ class WorkoutViewModel(
         scanJob = viewModelScope.launch {
             rxBleClient.scanBleDevices(
                 ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
-            ).asFlow().collect { result ->
+            ).asFlow().catch { e ->
+                Log.e("WorkoutViewModel", "Scan error: ${e.message}")
+                _isScanning.value = false
+                if (e is BleScanException && e.reason == BleScanException.BLUETOOTH_DISABLED) {
+                    _toastEvent.emit(ToastEvent.Resource(R.string.error_bluetooth_disabled))
+                } else {
+                    _toastEvent.emit(ToastEvent.Resource(R.string.error_rower_connection_failed, listOf(e.message ?: "Unknown")))
+                }
+            }.collect { result ->
                 val address = result.bleDevice.macAddress
                 val name = result.bleDevice.name ?: "Unknown Device"
                 val serviceUuids = result.scanRecord.serviceUuids?.map { it.uuid } ?: emptyList()
@@ -288,6 +308,14 @@ class WorkoutViewModel(
     fun startWorkout() {
         if (_sessionState.value == SessionState.ROWING) return
         val user = _currentUser.value ?: return
+        
+        if (selectedRowerAddress.value == null) {
+            viewModelScope.launch {
+                _toastEvent.emit(ToastEvent.Resource(R.string.error_no_rower_selected))
+            }
+            return
+        }
+
         viewModelScope.launch {
             if (_sessionState.value == SessionState.IDLE) {
                 currentWorkoutId = workoutDao.insertWorkout(Workout(userId = user.id, startTime = System.currentTimeMillis()))
@@ -352,7 +380,10 @@ class WorkoutViewModel(
     private fun startMetricsCollection() {
         metricsJob?.cancel()
         metricsJob = viewModelScope.launch {
-            rowingMachine.getMetricsFlow(_selectedRowerAddress.value).collect { rawData ->
+            rowingMachine.getMetricsFlow(_selectedRowerAddress.value).catch { e ->
+                Log.e("WorkoutViewModel", "Metrics collection error: ${e.message}")
+                _toastEvent.emit(ToastEvent.Resource(R.string.error_rower_connection_failed, listOf(e.message ?: "Unknown")))
+            }.collect { rawData ->
                 val smoothedPower = powerSmoother.add(rawData.power.toDouble()).toInt()
                 val smoothedPace = paceSmoother.add(rawData.pace.toDouble()).toInt()
                 _displayMetrics.value = _displayMetrics.value.copy(power = smoothedPower, pace = smoothedPace, strokeRate = rawData.strokeRate, distance = rawData.distance)
@@ -363,7 +394,10 @@ class WorkoutViewModel(
     private fun startHeartRateCollection(address: String? = null) {
         hrJob?.cancel()
         hrJob = viewModelScope.launch {
-            heartRateMonitor.getHeartRateFlow(address ?: _selectedHrmAddress.value).collect { bpm ->
+            heartRateMonitor.getHeartRateFlow(address ?: _selectedHrmAddress.value).catch { e ->
+                Log.e("WorkoutViewModel", "HR collection error: ${e.message}")
+                // Don't toast for HRM as it's often optional
+            }.collect { bpm ->
                 _displayMetrics.value = _displayMetrics.value.copy(heartRate = bpm)
             }
         }

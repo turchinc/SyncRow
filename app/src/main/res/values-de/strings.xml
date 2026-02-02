@@ -80,4 +80,8 @@
     <string name="lang_de">Deutsch</string>
     <string name="lang_es">Spanisch</string>
     <string name="lang_it">Italienisch</string>
+
+    <string name="error_bluetooth_disabled">Bluetooth ist deaktiviert. Bitte aktiviere es.</string>
+    <string name="error_no_rower_selected">Kein Rudergerät verbunden. Wähle bitte zuerst die Hardware aus.</string>
+    <string name="error_rower_connection_failed">Fehler beim Verbinden mit dem Rudergerät: %1$s</string>
 </resources>

@@ -3,6 +3,7 @@ package com.syncrow
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,9 +13,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.syncrow.ui.SyncRowNavGraph
 import com.syncrow.ui.workout.WorkoutViewModel
+import com.syncrow.ui.workout.ToastEvent
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         val db = app.database
 
         setContent {
+            val context = LocalContext.current
             val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 arrayOf(
                     Manifest.permission.BLUETOOTH_SCAN,
@@ -57,6 +61,23 @@ class MainActivity : AppCompatActivity() {
                             db.metricPointDao()
                         )
                     )
+
+                    // Collect and show toast messages from ViewModel
+                    LaunchedEffect(viewModel.toastEvent) {
+                        viewModel.toastEvent.collect { event ->
+                            when (event) {
+                                is ToastEvent.Resource -> {
+                                    val message = if (event.args.isEmpty()) {
+                                        context.getString(event.resId)
+                                    } else {
+                                        context.getString(event.resId, *event.args.toTypedArray())
+                                    }
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+
                     SyncRowNavGraph(
                         viewModel = viewModel,
                         onQuit = { finish() }

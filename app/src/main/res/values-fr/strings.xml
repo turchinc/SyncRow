@@ -80,4 +80,8 @@
     <string name="lang_de">Allemand</string>
     <string name="lang_es">Espagnol</string>
     <string name="lang_it">Italien</string>
+
+    <string name="error_bluetooth_disabled">Le Bluetooth est désactivé. Pense à l\'activer.</string>
+    <string name="error_no_rower_selected">Aucun rameur connecté. Sélectionne d\'abord ton matériel.</string>
+    <string name="error_rower_connection_failed">Erreur de connexion au rameur : %1$s</string>
 </resources>

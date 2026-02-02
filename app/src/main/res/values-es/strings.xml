@@ -80,4 +80,8 @@
     <string name="lang_de">Alemán</string>
     <string name="lang_es">Español</string>
     <string name="lang_it">Italiano</string>
+
+    <string name="error_bluetooth_disabled">Bluetooth está desactivado. Por favor, actívelo.</string>
+    <string name="error_no_rower_selected">No hay remo conectado. Seleccione el hardware primero.</string>
+    <string name="error_rower_connection_failed">Error al conectar con el remo: %1$s</string>
 </resources>

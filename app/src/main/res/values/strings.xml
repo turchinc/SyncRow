@@ -80,4 +80,8 @@
     <string name="lang_de">German</string>
     <string name="lang_es">Spanish</string>
     <string name="lang_it">Italian</string>
+
+    <string name="error_bluetooth_disabled">Bluetooth is disabled. Please enable it.</string>
+    <string name="error_no_rower_selected">No rower connected. Please select hardware first.</string>
+    <string name="error_rower_connection_failed">Error connecting to rower: %1$s</string>
 </resources>
