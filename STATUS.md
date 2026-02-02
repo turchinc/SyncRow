@@ -1,4 +1,4 @@
-# VibeRow Development Status
+# SyncRow Development Status
 
 This document provides a detailed checklist of the project's status, broken down by feature phase and architectural layer.
 
@@ -11,49 +11,48 @@ This document provides a detailed checklist of the project's status, broken down
   - [x] Define `IRowingMachine` interface.
   - [x] Define `RowerMetrics` data class.
   - [x] Implement `MockRower` for UI testing.
-  - [ ] Implement `SkandikaStyrkeII` for real hardware connection.
-- [ ] **Storage & Profile Layer**
-  - [ ] Define Room DB Schema (`UserTable`, `WorkoutTable`, `MetricPointTable`).
-  - [ ] Implement DAOs for data access.
+  - [x] Implement `FtmsRowingMachine` (Skandika Styrke II compatible).
+- [x] **Storage & Profile Layer**
+  - [x] Define Room DB Schema (`UserTable`, `WorkoutTable`, `MetricPointTable`).
+  - [x] Implement DAOs for data access.
+  - [x] Auto-recording of per-second metrics to DB.
 - [ ] **Integration Layer**
-  - [ ] Define `IExporter` interface.
-  - [ ] Implement `FileExporter` for `.tcx`/`.fit`.
+  - [x] Define `IExporter` interface.
+  - [x] Implement `TcxExporter` for file sharing.
 
 ### 2. UI Layer (Jetpack Compose)
+- [x] **Navigation & Shell**
+  - [x] Implement NavGraph for screen transitions.
+  - [x] Create Home Screen with action buttons.
 - [x] **ViewModel**
   - [x] Create `WorkoutViewModel`.
   - [x] Implement `DataSmoother` for Power and Pace.
-  - [x] Connect ViewModel to `MockRower` data source.
-  - [x] Expose `displayMetrics` `StateFlow` for the UI.
-- [ ] **Workout Screen**
-  - [ ] Create main workout screen Composable.
-  - [ ] Design and implement real-time metric display components.
-  - [ ] Implement Start/Pause/Stop session controls.
-  - [ ] Observe `displayMetrics` from the ViewModel.
+  - [x] Session state logic (Idle, Rowing, Paused).
+- [x] **Hardware Discovery**
+  - [x] Real-time BLE scanning for FTMS and HRM.
+  - [x] Device filtering (Rower vs HRM) and selection logic.
+  - [x] **Persistent device selection per user profile.**
+- [x] **Workout Screen**
+  - [x] High-contrast real-time metric display.
+  - [x] Orientation-aware responsive layout (Portrait/Landscape).
+  - [x] Persistent Heart Rate display (pre and post workout).
+- [x] **User Management**
+  - [x] Profile Switcher UI.
+  - [x] Support for multiple user profiles.
+  - [x] **Per-user language preferences (UI language switches immediately).**
 
 ### 3. Hardware Handshake
-- [ ] Implement BLE scanning and connection logic.
-- [ ] Implement FTMS service discovery and characteristic reading.
-- [ ] Handle connection lifecycle (disconnects, errors).
+- [x] Implement FTMS Control Point handshake (Request Control + Start).
+- [x] **Robust dynamic FTMS parser (verified against Skandika raw bytes).**
+- [x] Connection retry logic for GATT 133 errors.
 
 ---
 
-## Phase 2: User Personalization
-- [ ] **UI Layer**
-  - [ ] Design and implement Profile Switcher UI.
-  - [ ] Create OAuth2 login flow for Strava.
-  - [ ] Build local workout history/feed screen.
-- [ ] **Storage & Profile Layer**
-  - [ ] Implement multi-user CRUD operations.
-  - [ ] Securely store API auth tokens.
-
----
-
-## Phase 3: Advanced Coaching
-- [ ] **UI Layer**
-  - [ ] Design Custom Workout Builder screen.
-  - [ ] Implement visual target-tracking elements in the dashboard.
-  - [ ] Add heart rate zone display.
-- [ ] **ViewModel**
-  - [ ] Add logic for managing custom workout intervals.
-  - [ ] Add state for target tracking (e.g., `isWithinTargetRange`).
+## Phase 2: User Personalization & Analysis
+- [ ] **Workout History**
+  - [x] List past workouts from DB.
+  - [x] Detail view with summary statistics.
+- [ ] **Data Export**
+  - [x] Share TCX/FIT files to other apps via FileProvider.
+- [ ] **Auth Flow**
+  - [ ] OAuth2 integration for Strava.

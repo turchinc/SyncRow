@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">SyncRow</string>
+    <string name="btn_just_row">VOGA</string>
+    <string name="btn_history">CRONOLOGIA</string>
+    <string name="btn_hardware">HARDWARE</string>
+    <string name="btn_profile">PROFILO</string>
+    <string name="btn_quit">ESCI DALL\'APP</string>
+    <string name="label_current_user">Utente attuale: %1$s</string>
+    <string name="loading">Caricamento...</string>
+
+    <string name="dialog_end_workout_title">Termina allenamento</string>
+    <string name="dialog_end_workout_message">Vuoi salvare questa sessione nella tua cronologia?</string>
+    <string name="btn_save">SALVA</string>
+    <string name="btn_discard">SCARTA</string>
+    <string name="btn_start">INIZIA</string>
+    <string name="btn_pause">PAUSA</string>
+    <string name="btn_stop">STOP</string>
+    <string name="btn_resume">RIPRENDI</string>
+
+    <string name="label_pace">RITMO 500m</string>
+    <string name="label_power_watts">POTENZA (W)</string>
+    <string name="label_stroke_rate">FREQUENZA PALATE</string>
+    <string name="label_distance_meters">DISTANZA (M)</string>
+    <string name="label_heart_rate">FREQUENZA CARDIACA</string>
+    <string name="label_power">POTENZA</string>
+    <string name="label_stroke">PALATA</string>
+    <string name="label_dist">DIST</string>
+    <string name="label_hr">FC</string>
+
+    <string name="selection_count">%1$d selezionati</string>
+    <string name="cd_cancel_selection">Annulla selezione</string>
+    <string name="cd_back">Indietro</string>
+    <string name="cd_delete_selected">Elimina selezionati</string>
+    <string name="label_no_workouts">Nessun allenamento registrato. Inizia a vogare!</string>
+    <string name="label_avg_power_format">%1$dW medi</string>
+
+    <string name="title_hardware_setup">Configurazione Hardware</string>
+    <string name="btn_rescan">RESCAN</string>
+    <string name="discovery_description">Seleziona il tuo vogatore e il tuo cardiofrequenzimetro. Ciò garantisce che l\'app utilizzi il corretto parser di dati.</string>
+    <string name="discovery_no_devices">Nessun hardware compatibile trovato. Tira la maniglia del vogatore e assicurati che il cardiofrequenzimetro sia acceso.</string>
+    <string name="cd_selected">Selezionato</string>
+
+    <string name="title_user_profiles">Profili Utente</string>
+    <string name="cd_add_profile">Aggiungi Profilo</string>
+    <string name="label_active_profile">Profilo Attivo</string>
+    <string name="cd_edit_profile">Modifica Profilo</string>
+    <string name="label_strava_connected">Collegato a Strava</string>
+    <string name="label_switch_profile">Cambia Profilo</string>
+    <string name="label_years_format">%1$d anni</string>
+    <string name="title_new_profile">Nuovo Profilo</string>
+    <string name="label_name">Nome</string>
+    <string name="btn_create">Crea</string>
+    <string name="btn_cancel">Annulla</string>
+    <string name="label_age">Età</string>
+    <string name="label_weight_kg">Peso (kg)</string>
+    <string name="label_height_cm">Altezza (cm)</string>
+    <string name="label_gender">Sesso</string>
+    <string name="gender_male">Maschio</string>
+    <string name="gender_female">Femmina</string>
+    <string name="gender_other">Altro</string>
+    <string name="btn_connect_strava">COLLEGA STRAVA</string>
+
+    <string name="dialog_delete_workout_title">Elimina Allenamento</string>
+    <string name="dialog_delete_workout_message">Sei sicuro di voler eliminare questo allenamento? Questa azione non può essere annullata.</string>
+    <string name="btn_delete">Elimina</string>
+    <string name="title_workout_summary">Riepilogo Allenamento</string>
+    <string name="cd_export_tcx">Esporta TCX</string>
+    <string name="label_started_at">Iniziato alle %1$s</string>
+    <string name="label_distance">DISTANZA</string>
+    <string name="label_time">TEMPO</string>
+    <string name="label_avg_power">POTENZA MEDIA</string>
+    <string name="label_avg_hr">FC MEDIA</string>
+    <string name="btn_export_tcx">ESPORTA COME TCX</string>
+
+    <string name="unknown_device">Dispositivo sconosciuto</string>
+
+    <string name="label_language">Lingua</string>
+    <string name="lang_en">Inglese</string>
+    <string name="lang_fr">Francese</string>
+    <string name="lang_de">Tedesco</string>
+    <string name="lang_es">Spagnolo</string>
+    <string name="lang_it">Italiano</string>
+</resources>

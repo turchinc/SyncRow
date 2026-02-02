@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "VibeRow"
+rootProject.name = "SyncRow"
 include(":app")

@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">SyncRow</string>
+    <string name="btn_just_row">RAMER</string>
+    <string name="btn_history">HISTORIQUE</string>
+    <string name="btn_hardware">MATÉRIEL</string>
+    <string name="btn_profile">PROFIL</string>
+    <string name="btn_quit">QUITTER L\'APP</string>
+    <string name="label_current_user">Utilisateur actuel : %1$s</string>
+    <string name="loading">Chargement...</string>
+
+    <string name="dialog_end_workout_title">Terminer l\'entraînement</string>
+    <string name="dialog_end_workout_message">Veux-tu enregistrer cette séance dans ton historique ?</string>
+    <string name="btn_save">ENREGISTRER</string>
+    <string name="btn_discard">IGNORER</string>
+    <string name="btn_start">DÉMARRER</string>
+    <string name="btn_pause">PAUSE</string>
+    <string name="btn_stop">ARRÊTER</string>
+    <string name="btn_resume">REPRENDRE</string>
+
+    <string name="label_pace">ALLURE 500m</string>
+    <string name="label_power_watts">PUISSANCE (W)</string>
+    <string name="label_stroke_rate">CADENCE</string>
+    <string name="label_distance_meters">DISTANCE (M)</string>
+    <string name="label_heart_rate">FRÉQUENCE CARDIAQUE</string>
+    <string name="label_power">PUISSANCE</string>
+    <string name="label_stroke">CADENCE</string>
+    <string name="label_dist">DIST</string>
+    <string name="label_hr">FC</string>
+
+    <string name="selection_count">%1$d sélectionnés</string>
+    <string name="cd_cancel_selection">Annuler la sélection</string>
+    <string name="cd_back">Retour</string>
+    <string name="cd_delete_selected">Supprimer la sélection</string>
+    <string name="label_no_workouts">Aucun entraînement enregistré. Commence à ramer !</string>
+    <string name="label_avg_power_format">%1$dW moy.</string>
+
+    <string name="title_hardware_setup">Configuration du matériel</string>
+    <string name="btn_rescan">RESCANNER</string>
+    <string name="discovery_description">Sélectionne ton rameur et ton moniteur de fréquence cardiaque. Cela garantit que l\'application utilise le bon analyseur de données.</string>
+    <string name="discovery_no_devices">Aucun matériel compatible trouvé. Tire sur la poignée du rameur et assure-toi que le moniteur FC est allumé.</string>
+    <string name="cd_selected">Sélectionné</string>
+
+    <string name="title_user_profiles">Profils d\'utilisateurs</string>
+    <string name="cd_add_profile">Ajouter un profil</string>
+    <string name="label_active_profile">Profil actif</string>
+    <string name="cd_edit_profile">Modifier le profil</string>
+    <string name="label_strava_connected">Connecté à Strava</string>
+    <string name="label_switch_profile">Changer de profil</string>
+    <string name="label_years_format">%1$d ans</string>
+    <string name="title_new_profile">Nouveau profil</string>
+    <string name="label_name">Nom</string>
+    <string name="btn_create">Créer</string>
+    <string name="btn_cancel">Annuler</string>
+    <string name="label_age">Âge</string>
+    <string name="label_weight_kg">Poids (kg)</string>
+    <string name="label_height_cm">Taille (cm)</string>
+    <string name="label_gender">Genre</string>
+    <string name="gender_male">Homme</string>
+    <string name="gender_female">Femme</string>
+    <string name="gender_other">Autre</string>
+    <string name="btn_connect_strava">CONNECTER STRAVA</string>
+
+    <string name="dialog_delete_workout_title">Supprimer l\'entraînement</string>
+    <string name="dialog_delete_workout_message">Es-tu sûr de vouloir supprimer cet entraînement ? Cette action est irréversible.</string>
+    <string name="btn_delete">Supprimer</string>
+    <string name="title_workout_summary">Résumé de l\'entraînement</string>
+    <string name="cd_export_tcx">Exporter TCX</string>
+    <string name="label_started_at">Commencé à %1$s</string>
+    <string name="label_distance">DISTANCE</string>
+    <string name="label_time">TEMPS</string>
+    <string name="label_avg_power">PUISSANCE MOY.</string>
+    <string name="label_avg_hr">FC MOY.</string>
+    <string name="btn_export_tcx">EXPORTER EN TCX</string>
+
+    <string name="unknown_device">Appareil inconnu</string>
+
+    <string name="label_language">Langue</string>
+    <string name="lang_en">Anglais</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_de">Allemand</string>
+    <string name="lang_es">Espagnol</string>
+    <string name="lang_it">Italien</string>
+</resources>

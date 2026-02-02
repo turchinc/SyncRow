@@ -1,4 +1,4 @@
-package com.viberow.util
+package com.syncrow.util
 
 import java.util.LinkedList
 import java.util.Queue

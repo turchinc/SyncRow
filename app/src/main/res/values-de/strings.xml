@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">SyncRow</string>
+    <string name="btn_just_row">EINFACH RUDERN</string>
+    <string name="btn_history">TRAININGSVERLAUF</string>
+    <string name="btn_hardware">HARDWARE</string>
+    <string name="btn_profile">PROFIL</string>
+    <string name="btn_quit">APP BEENDEN</string>
+    <string name="label_current_user">Aktueller Benutzer: %1$s</string>
+    <string name="loading">Wird geladen...</string>
+
+    <string name="dialog_end_workout_title">Training beenden</string>
+    <string name="dialog_end_workout_message">Möchtest du dieses Training in deinem Verlauf speichern?</string>
+    <string name="btn_save">SPEICHERN</string>
+    <string name="btn_discard">VERWERFEN</string>
+    <string name="btn_start">START</string>
+    <string name="btn_pause">PAUSE</string>
+    <string name="btn_stop">STOPP</string>
+    <string name="btn_resume">FORTSETZEN</string>
+
+    <string name="label_pace">500m PACE</string>
+    <string name="label_power_watts">LEISTUNG (W)</string>
+    <string name="label_stroke_rate">SCHLAGRATE</string>
+    <string name="label_distance_meters">DISTANZ (M)</string>
+    <string name="label_heart_rate">HERZFREQUENZ</string>
+    <string name="label_power">WATT</string>
+    <string name="label_stroke">SCHLAG</string>
+    <string name="label_dist">DIST</string>
+    <string name="label_hr">HF</string>
+
+    <string name="selection_count">%1$d ausgewählt</string>
+    <string name="cd_cancel_selection">Auswahl aufheben</string>
+    <string name="cd_back">Zurück</string>
+    <string name="cd_delete_selected">Ausgewählte löschen</string>
+    <string name="label_no_workouts">Noch keine Trainings aufgezeichnet. Fang an zu rudern!</string>
+    <string name="label_avg_power_format">%1$dW Durchschn.</string>
+
+    <string name="title_hardware_setup">Hardware-Einrichtung</string>
+    <string name="btn_rescan">ERNEUT SCANNEN</string>
+    <string name="discovery_description">Wähle dein Rudergerät und deinen Herzfrequenzmesser aus. Dies stellt sicher, dass die App den richtigen Daten-Parser verwendet.</string>
+    <string name="discovery_no_devices">Keine kompatible Hardware gefunden. Ziehe am Rudergriff und stelle sicher, dass der HF-Messer eingeschaltet ist.</string>
+    <string name="cd_selected">Ausgewählt</string>
+
+    <string name="title_user_profiles">Benutzerprofile</string>
+    <string name="cd_add_profile">Profil hinzufügen</string>
+    <string name="label_active_profile">Aktives Profil</string>
+    <string name="cd_edit_profile">Profil bearbeiten</string>
+    <string name="label_strava_connected">Mit Strava verbunden</string>
+    <string name="label_switch_profile">Profil wechseln</string>
+    <string name="label_years_format">%1$d J.</string>
+    <string name="title_new_profile">Neues Profil</string>
+    <string name="label_name">Name</string>
+    <string name="btn_create">Erstellen</string>
+    <string name="btn_cancel">Abbrechen</string>
+    <string name="label_age">Alter</string>
+    <string name="label_weight_kg">Gewicht (kg)</string>
+    <string name="label_height_cm">Größe (cm)</string>
+    <string name="label_gender">Geschlecht</string>
+    <string name="gender_male">Männlich</string>
+    <string name="gender_female">Weiblich</string>
+    <string name="gender_other">Andere</string>
+    <string name="btn_connect_strava">STRAVA VERBINDEN</string>
+
+    <string name="dialog_delete_workout_title">Training löschen</string>
+    <string name="dialog_delete_workout_message">Bist du sicher, dass du dieses Training löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="btn_delete">Löschen</string>
+    <string name="title_workout_summary">Zusammenfassung</string>
+    <string name="cd_export_tcx">TCX exportieren</string>
+    <string name="label_started_at">Gestartet um %1$s</string>
+    <string name="label_distance">DISTANZ</string>
+    <string name="label_time">ZEIT</string>
+    <string name="label_avg_power">DURCHSCHN. WATT</string>
+    <string name="label_avg_hr">DURCHSCHN. HF</string>
+    <string name="btn_export_tcx">ALS TCX EXPORTIEREN</string>
+
+    <string name="unknown_device">Unbekanntes Gerät</string>
+
+    <string name="label_language">Sprache</string>
+    <string name="lang_en">Englisch</string>
+    <string name="lang_fr">Französisch</string>
+    <string name="lang_de">Deutsch</string>
+    <string name="lang_es">Spanisch</string>
+    <string name="lang_it">Italienisch</string>
+</resources>
