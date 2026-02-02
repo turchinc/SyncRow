@@ -64,7 +64,7 @@ Modular export tasks that can be toggled per user:
 ## 4. Technical Stack
 - **IDE**: Android Studio.
 - **Language**: Kotlin.
-- **Build System**: Gradle (Groovy DSL).
+- **Build System**: Gradle (Kotlin DSL).
 - **UI**: Jetpack Compose (for reactive data binding).
 - **Bluetooth**: RxAndroidBle (Reactive stream handling).
 - **Database**: Room (SQLite).
