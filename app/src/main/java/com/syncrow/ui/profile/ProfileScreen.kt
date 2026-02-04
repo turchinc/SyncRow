@@ -1,5 +1,9 @@
 package com.syncrow.ui.profile
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,9 +16,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.syncrow.BuildConfig
 import com.syncrow.R
 import com.syncrow.data.db.User
 import com.syncrow.ui.workout.WorkoutViewModel
@@ -81,6 +87,7 @@ fun ProfileScreen(viewModel: WorkoutViewModel, onBack: () -> Unit) {
             currentUser?.let { user ->
                 EditProfileDialog(
                     user = user,
+                    viewModel = viewModel,
                     onDismiss = { showEditDialog = false },
                     onConfirm = { updatedUser ->
                         viewModel.updateCurrentUser(updatedUser)
@@ -181,7 +188,8 @@ fun AddProfileDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileDialog(user: User, onDismiss: () -> Unit, onConfirm: (User) -> Unit) {
+fun EditProfileDialog(user: User, viewModel: WorkoutViewModel, onDismiss: () -> Unit, onConfirm: (User) -> Unit) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf(user.name) }
     var age by remember { mutableStateOf(user.age?.toString() ?: "") }
     var weight by remember { mutableStateOf(user.weightKg?.toString() ?: "") }
@@ -192,6 +200,29 @@ fun EditProfileDialog(user: User, onDismiss: () -> Unit, onConfirm: (User) -> Un
     val genders = listOf("Male", "Female", "Other")
     val languages = listOf("en", "fr", "de", "es", "it")
     var expanded by remember { mutableStateOf(false) }
+
+    val onConnectStrava: () -> Unit = {
+        val clientId = BuildConfig.STRAVA_CLIENT_ID.replace("\"", "").trim()
+        val redirectUri = "syncrow://strava-auth"
+        val scope = "activity:write,read"
+        
+        val uri = Uri.parse("https://www.strava.com/oauth/authorize")
+            .buildUpon()
+            .appendQueryParameter("client_id", clientId)
+            .appendQueryParameter("redirect_uri", redirectUri)
+            .appendQueryParameter("response_type", "code")
+            .appendQueryParameter("scope", scope)
+            .appendQueryParameter("approval_prompt", "force")
+            .build()
+        
+        Log.d("SyncRow", "Opening Strava Auth: $uri")
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("SyncRow", "Could not open browser", e)
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -268,14 +299,26 @@ fun EditProfileDialog(user: User, onDismiss: () -> Unit, onConfirm: (User) -> Un
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { /* TODO: Strava OAuth */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFC4C02))
-                ) {
-                    Icon(Icons.Default.Share, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.btn_connect_strava))
+                if (user.stravaToken == null) {
+                    Button(
+                        onClick = onConnectStrava,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFC4C02))
+                    ) {
+                        Icon(Icons.Default.Link, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.btn_connect_strava))
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { viewModel.disconnectStrava() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFC4C02))
+                    ) {
+                        Icon(Icons.Default.LinkOff, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.btn_disconnect_strava))
+                    }
                 }
             }
         },

@@ -14,6 +14,8 @@ data class User(
     val age: Int? = null,
     val gender: String? = null,
     val stravaToken: String? = null,
+    val stravaRefreshToken: String? = null,
+    val stravaTokenExpiresAt: Long? = null,
     val languageCode: String = "en"
 )
 
@@ -38,7 +40,8 @@ data class Workout(
     var totalSeconds: Int = 0,
     var avgPower: Int = 0,
     var avgHeartRate: Int = 0,
-    val notes: String? = null
+    val notes: String? = null,
+    val stravaActivityId: Long? = null
 )
 
 @Entity(

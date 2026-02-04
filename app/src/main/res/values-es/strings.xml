@@ -45,6 +45,7 @@
     <string name="label_active_profile">Perfil activo</string>
     <string name="cd_edit_profile">Editar perfil</string>
     <string name="label_strava_connected">Conectado a Strava</string>
+    <string name="label_strava_synced">Sincronizado con Strava</string>
     <string name="label_switch_profile">Cambiar perfil</string>
     <string name="label_years_format">%1$d años</string>
     <string name="title_new_profile">Nuevo perfil</string>
@@ -59,6 +60,15 @@
     <string name="gender_female">Femenino</string>
     <string name="gender_other">Otro</string>
     <string name="btn_connect_strava">CONECTAR STRAVA</string>
+    <string name="btn_disconnect_strava">DESCONECTAR STRAVA</string>
+    <string name="btn_sync_strava">SINCRONIZAR A STRAVA</string>
+    <string name="strava_connected_success">¡Conectado a Strava con éxito!</string>
+    <string name="strava_disconnected_success">Strava desconectado.</string>
+    <string name="strava_connection_error">Error al conectar con Strava.</string>
+    <string name="strava_syncing">Sincronizando con Strava...</string>
+    <string name="strava_sync_success">¡Entrenamiento sincronizado con Strava!</string>
+    <string name="strava_sync_error">Error al sincronizar con Strava.</string>
+    <string name="error_strava_credentials_missing">Credenciales de Strava no configuradas en local.properties</string>
 
     <string name="dialog_delete_workout_title">Eliminar entrenamiento</string>
     <string name="dialog_delete_workout_message">¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.</string>

@@ -78,7 +78,6 @@ class FtmsRowingMachine(
     private fun parseRowerData(bytes: ByteArray): RowerMetrics {
         if (bytes.size < 2) return lastMetrics
         
-        val hexString = bytes.joinToString("") { "%02X".format(it) }
         val flags = (bytes[0].toInt() and 0xFF) or ((bytes[1].toInt() and 0xFF) shl 8)
         var offset = 2
         
@@ -131,9 +130,9 @@ class FtmsRowingMachine(
             }
             
             lastMetrics = RowerMetrics(power, pace, strokeRate, distance)
-            Log.d("FtmsRower", "SYNCED: $hexString | P: $power, SR: $strokeRate, D: $distance, Pace: $pace")
             
         } catch (e: Exception) {
+            val hexString = bytes.joinToString("") { "%02X".format(it) }
             Log.e("FtmsRower", "Dynamic parse error at offset $offset in $hexString", e)
         }
 

@@ -5,37 +5,27 @@ import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.polidea.rxandroidble3.RxBleClient
 import com.polidea.rxandroidble3.exceptions.BleScanException
 import com.polidea.rxandroidble3.scan.ScanSettings
 import com.syncrow.R
 import com.syncrow.data.db.*
+import com.syncrow.data.StravaRepository
+import com.syncrow.hal.ble.BleHeartRateMonitor
+import com.syncrow.hal.ble.FtmsRowingMachine
 import com.syncrow.hal.IRowingMachine
 import com.syncrow.hal.IHeartRateMonitor
 import com.syncrow.hal.RowerMetrics
-import com.syncrow.hal.mock.MockRower
-import com.syncrow.hal.ble.BleHeartRateMonitor
-import com.syncrow.hal.ble.FtmsRowingMachine
 import com.syncrow.util.DataSmoother
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx3.asFlow
-import java.util.UUID
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.withContext
+import java.util.*
 
 enum class SessionState {
     IDLE, ROWING, PAUSED
@@ -54,6 +44,7 @@ data class DiscoveredDevice(
 
 sealed class ToastEvent {
     data class Resource(val resId: Int, val args: List<Any> = emptyList()) : ToastEvent()
+    data class String(val message: kotlin.String) : ToastEvent()
 }
 
 class WorkoutViewModel(
@@ -61,7 +52,8 @@ class WorkoutViewModel(
     private val rxBleClient: RxBleClient,
     private val userDao: UserDao,
     private val workoutDao: WorkoutDao,
-    private val metricPointDao: MetricPointDao
+    private val metricPointDao: MetricPointDao,
+    private val stravaRepository: StravaRepository
 ) : AndroidViewModel(application) {
 
     private val prefs = application.getSharedPreferences("syncrow_prefs", Context.MODE_PRIVATE)
@@ -72,12 +64,12 @@ class WorkoutViewModel(
     private val FTMS_SERVICE_UUID = UUID.fromString("00001826-0000-1000-8000-00805f9b34fb")
     private val HRM_SERVICE_UUID = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb")
 
-    private val useRealHardware = true
-    private val rowingMachine: IRowingMachine = if (useRealHardware) FtmsRowingMachine(rxBleClient) else MockRower()
+    private val rowingMachine: IRowingMachine = FtmsRowingMachine(rxBleClient)
     private val heartRateMonitor: IHeartRateMonitor = BleHeartRateMonitor(rxBleClient)
     
     private val powerSmoother = DataSmoother(windowSize = 3)
     private val paceSmoother = DataSmoother(windowSize = 3)
+    private val heartRateSmoother = DataSmoother(windowSize = 5)
 
     private val _displayMetrics = MutableStateFlow(RowerMetrics(0, 0, 0, 0, 0))
     val displayMetrics: StateFlow<RowerMetrics> = _displayMetrics.asStateFlow()
@@ -121,7 +113,6 @@ class WorkoutViewModel(
         viewModelScope.launch {
             selectedHrmAddress.collect { address ->
                 if (address != null) {
-                    Log.d("WorkoutViewModel", "HRM address changed to: $address. Restarting collection.")
                     startHeartRateCollection(address)
                 }
             }
@@ -131,6 +122,7 @@ class WorkoutViewModel(
     private fun loadUser() {
         viewModelScope.launch {
             val users = allUsers.first()
+
             if (users.isEmpty()) {
                 val defaultId = userDao.insertUser(User(name = "Chris"))
                 val user = userDao.getUserById(defaultId)
@@ -215,66 +207,78 @@ class WorkoutViewModel(
     fun startDiscovery() {
         if (_isScanning.value) return
         _isScanning.value = true
-        _discoveredDevices.value = emptyList()
+        
+        // Seeding with currently linked devices
+        val initialList = mutableListOf<DiscoveredDevice>()
+        selectedRowerAddress.value?.let { addr ->
+            initialList.add(DiscoveredDevice("Linked Rower", addr, 0, DeviceType.ROWER))
+        }
+        selectedHrmAddress.value?.let { addr ->
+            initialList.add(DiscoveredDevice("Linked HRM", addr, 0, DeviceType.HRM))
+        }
+        _discoveredDevices.value = initialList
         
         scanJob = viewModelScope.launch {
             rxBleClient.scanBleDevices(
                 ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
-            ).asFlow().catch { e ->
-                Log.e("WorkoutViewModel", "Scan error: ${e.message}")
-                _isScanning.value = false
-                if (e is BleScanException && e.reason == BleScanException.BLUETOOTH_DISABLED) {
-                    _toastEvent.emit(ToastEvent.Resource(R.string.error_bluetooth_disabled))
-                } else {
-                    _toastEvent.emit(ToastEvent.Resource(R.string.error_rower_connection_failed, listOf(e.message ?: "Unknown")))
-                }
-            }.collect { result ->
-                val address = result.bleDevice.macAddress
-                val name = result.bleDevice.name ?: "Unknown Device"
-                val serviceUuids = result.scanRecord.serviceUuids?.map { it.uuid } ?: emptyList()
-                
-                val currentList = _discoveredDevices.value.toMutableList()
-                val existingIndex = currentList.indexOfFirst { it.address == address }
-                
-                // Detection logic
-                var type = when {
-                    serviceUuids.contains(FTMS_SERVICE_UUID) -> DeviceType.ROWER
-                    serviceUuids.contains(HRM_SERVICE_UUID) -> DeviceType.HRM
-                    name.startsWith("FS-", ignoreCase = true) -> DeviceType.ROWER
-                    name.contains("Polar", ignoreCase = true) -> DeviceType.HRM
-                    name.contains("Garmin", ignoreCase = true) -> DeviceType.HRM
-                    name.contains("Wahoo", ignoreCase = true) -> DeviceType.HRM
-                    name.contains("Tickr", ignoreCase = true) -> DeviceType.HRM
-                    name.contains("HR-", ignoreCase = true) -> DeviceType.HRM
-                    name.contains("Heart", ignoreCase = true) -> DeviceType.HRM
-                    name.contains("CooSpo", ignoreCase = true) -> DeviceType.HRM
-                    name.contains("Magene", ignoreCase = true) -> DeviceType.HRM
-                    else -> DeviceType.UNKNOWN
-                }
-
-                // Sticky type
-                if (type == DeviceType.UNKNOWN && existingIndex != -1) {
-                    val existingType = currentList[existingIndex].type
-                    if (existingType != DeviceType.UNKNOWN) {
-                        type = existingType
+            ).asFlow()
+                .catch { e ->
+                    Log.e("WorkoutViewModel", "Scan error: ${e.message}")
+                    _isScanning.value = false
+                    if (e is BleScanException && e.reason == BleScanException.BLUETOOTH_DISABLED) {
+                        _toastEvent.emit(ToastEvent.Resource(R.string.error_bluetooth_disabled))
+                    } else {
+                        _toastEvent.emit(ToastEvent.Resource(R.string.error_rower_connection_failed, listOf(e.message ?: "Unknown")))
                     }
                 }
+                .sample(500)
+                .collect { result ->
+                    val address = result.bleDevice.macAddress
+                    val scanName = result.scanRecord.deviceName ?: result.bleDevice.name ?: "Unknown Device"
+                    val serviceUuids = result.scanRecord.serviceUuids?.map { it.uuid } ?: emptyList()
+                    
+                    val currentList = _discoveredDevices.value.toMutableList()
+                    val existingIndex = currentList.indexOfFirst { it.address == address }
+                    
+                    // Detection logic
+                    var type = when {
+                        address == selectedRowerAddress.value -> DeviceType.ROWER
+                        address == selectedHrmAddress.value -> DeviceType.HRM
+                        serviceUuids.contains(FTMS_SERVICE_UUID) -> DeviceType.ROWER
+                        serviceUuids.contains(HRM_SERVICE_UUID) -> DeviceType.HRM
+                        scanName.startsWith("FS-", ignoreCase = true) -> DeviceType.ROWER
+                        scanName.contains("Polar", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("Garmin", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("Wahoo", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("Tickr", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("HR-", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("Heart", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("CooSpo", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("Magene", ignoreCase = true) -> DeviceType.HRM
+                        scanName.contains("BLE-", ignoreCase = true) -> DeviceType.HRM
+                        else -> DeviceType.UNKNOWN
+                    }
 
-                val finalName = if (name == "Unknown Device" && existingIndex != -1) {
-                    currentList[existingIndex].name
-                } else {
-                    name
-                }
+                    // Prevent downgrading type if already known
+                    if (type == DeviceType.UNKNOWN && existingIndex != -1) {
+                        type = currentList[existingIndex].type
+                    }
 
-                val newDevice = DiscoveredDevice(finalName, address, result.rssi, type)
-                
-                if (existingIndex != -1) {
-                    currentList[existingIndex] = newDevice
-                } else {
-                    currentList.add(newDevice)
+                    val finalName = if (scanName == "Unknown Device" && existingIndex != -1) {
+                        currentList[existingIndex].name
+                    } else {
+                        scanName
+                    }
+
+                    val newDevice = DiscoveredDevice(finalName, address, result.rssi, type)
+                    
+                    if (existingIndex != -1) {
+                        currentList[existingIndex] = newDevice
+                    } else {
+                        currentList.add(newDevice)
+                    }
+                    _discoveredDevices.value = currentList.sortedByDescending { it.rssi }
                 }
-                _discoveredDevices.value = currentList.sortedByDescending { it.rssi }
-            }
         }
         
         scanTimeoutJob?.cancel()
@@ -380,32 +384,40 @@ class WorkoutViewModel(
     private fun startMetricsCollection() {
         metricsJob?.cancel()
         metricsJob = viewModelScope.launch {
-            rowingMachine.getMetricsFlow(_selectedRowerAddress.value).catch { e ->
-                Log.e("WorkoutViewModel", "Metrics collection error: ${e.message}")
-                _toastEvent.emit(ToastEvent.Resource(R.string.error_rower_connection_failed, listOf(e.message ?: "Unknown")))
-            }.collect { rawData ->
-                val smoothedPower = powerSmoother.add(rawData.power.toDouble()).toInt()
-                val smoothedPace = paceSmoother.add(rawData.pace.toDouble()).toInt()
-                _displayMetrics.value = _displayMetrics.value.copy(power = smoothedPower, pace = smoothedPace, strokeRate = rawData.strokeRate, distance = rawData.distance)
-            }
+            rowingMachine.getMetricsFlow(_selectedRowerAddress.value)
+                .conflate() // Ensure we only process the latest data and don't backlog
+                .catch { e ->
+                    Log.e("WorkoutViewModel", "Metrics collection error: ${e.message}")
+                    _toastEvent.emit(ToastEvent.Resource(R.string.error_rower_connection_failed, listOf(e.message ?: "Unknown")))
+                }.collect { rawData ->
+                    val smoothedPower = powerSmoother.add(rawData.power.toDouble()).toInt()
+                    val smoothedPace = paceSmoother.add(rawData.pace.toDouble()).toInt()
+                    _displayMetrics.value = _displayMetrics.value.copy(power = smoothedPower, pace = smoothedPace, strokeRate = rawData.strokeRate, distance = rawData.distance)
+                }
         }
     }
 
     private fun startHeartRateCollection(address: String? = null) {
         hrJob?.cancel()
         hrJob = viewModelScope.launch {
-            heartRateMonitor.getHeartRateFlow(address ?: _selectedHrmAddress.value).catch { e ->
-                Log.e("WorkoutViewModel", "HR collection error: ${e.message}")
-                // Don't toast for HRM as it's often optional
-            }.collect { bpm ->
-                _displayMetrics.value = _displayMetrics.value.copy(heartRate = bpm)
-            }
+            heartRateMonitor.getHeartRateFlow(address ?: _selectedHrmAddress.value)
+                .conflate()
+                .catch { e ->
+                    Log.e("WorkoutViewModel", "HR collection error: ${e.message}")
+                }.collect { bpm ->
+                    val finalBpm = if (bpm > 0) {
+                        heartRateSmoother.add(bpm.toDouble()).toInt()
+                    } else {
+                        0
+                    }
+                    _displayMetrics.value = _displayMetrics.value.copy(heartRate = finalBpm)
+                }
         }
     }
 
     private fun startRecording() {
         recordingJob?.cancel()
-        recordingJob = viewModelScope.launch {
+        recordingJob = viewModelScope.launch(Dispatchers.IO) {
             while (true) {
                 delay(1000)
                 val workoutId = currentWorkoutId ?: break
@@ -419,7 +431,59 @@ class WorkoutViewModel(
         return metricPointDao.getPointsForWorkout(workoutId)
     }
 
-    class Factory(private val application: Application, private val rxBleClient: RxBleClient, private val userDao: UserDao, private val workoutDao: WorkoutDao, private val metricPointDao: MetricPointDao) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST") override fun <T : ViewModel> create(modelClass: Class<T>): T = WorkoutViewModel(application, rxBleClient, userDao, workoutDao, metricPointDao) as T
+    fun completeStravaAuth(code: String) {
+        val user = _currentUser.value ?: return
+        viewModelScope.launch {
+            try {
+                stravaRepository.connect(code, user)
+                _toastEvent.emit(ToastEvent.Resource(R.string.strava_connected_success))
+                // Reload user to get updated tokens
+                loadUser()
+            } catch (e: Exception) {
+                _toastEvent.emit(ToastEvent.Resource(R.string.strava_connection_error))
+            }
+        }
+    }
+
+    fun disconnectStrava() {
+        val user = _currentUser.value ?: return
+        viewModelScope.launch {
+            val updatedUser = user.copy(
+                stravaToken = null,
+                stravaRefreshToken = null,
+                stravaTokenExpiresAt = null
+            )
+            userDao.updateUser(updatedUser)
+            setCurrentUserInternal(updatedUser)
+            _toastEvent.emit(ToastEvent.Resource(R.string.strava_disconnected_success))
+        }
+    }
+
+    fun syncWorkoutToStrava(workoutId: Long) {
+        val user = _currentUser.value ?: return
+        viewModelScope.launch {
+            val workout = workoutDao.getWorkoutById(workoutId) ?: return@launch
+            val points = metricPointDao.getPointsForWorkout(workoutId).first()
+            
+            _toastEvent.emit(ToastEvent.Resource(R.string.strava_syncing))
+            val success = stravaRepository.uploadWorkout(workout, points, user)
+            if (success) {
+                _toastEvent.emit(ToastEvent.Resource(R.string.strava_sync_success))
+            } else {
+                _toastEvent.emit(ToastEvent.Resource(R.string.strava_sync_error))
+            }
+        }
+    }
+
+    class Factory(
+        private val application: Application, 
+        private val rxBleClient: RxBleClient, 
+        private val userDao: UserDao, 
+        private val workoutDao: WorkoutDao, 
+        private val metricPointDao: MetricPointDao,
+        private val stravaRepository: StravaRepository
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST") override fun <T : ViewModel> create(modelClass: Class<T>): T = 
+            WorkoutViewModel(application, rxBleClient, userDao, workoutDao, metricPointDao, stravaRepository) as T
     }
 }

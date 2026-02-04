@@ -1,7 +1,15 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+}
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
 }
 
 android {
@@ -12,13 +20,20 @@ android {
         applicationId = "com.syncrow"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5 // Incremented
+        versionCode = 5
         versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Using user-provided credentials as defaults for testing
+        val stravaId = localProperties.getProperty("strava_client_id") ?: "199789"
+        val stravaSecret = localProperties.getProperty("strava_client_secret") ?: "1aa6f8500d31538c98beb0ab792d453558bb4a12"
+
+        buildConfigField("String", "STRAVA_CLIENT_ID", "\"$stravaId\"")
+        buildConfigField("String", "STRAVA_CLIENT_SECRET", "\"$stravaSecret\"")
     }
 
     buildTypes {
@@ -42,6 +57,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
@@ -68,7 +84,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")
-
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     // Bluetooth
     implementation("com.polidea.rxandroidble3:rxandroidble:1.16.0")

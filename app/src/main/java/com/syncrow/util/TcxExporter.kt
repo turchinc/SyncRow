@@ -43,7 +43,7 @@ class TcxExporter(private val context: Context) {
         context.startActivity(chooser)
     }
 
-    private fun generateTcx(workout: Workout, points: List<MetricPoint>): String {
+    fun generateTcx(workout: Workout, points: List<MetricPoint>): String {
         val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
@@ -63,7 +63,7 @@ class TcxExporter(private val context: Context) {
 
             serializer.startTag(null, "Activities")
             serializer.startTag(null, "Activity")
-            serializer.attribute(null, "Sport", "Other")
+            serializer.attribute(null, "Sport", "Rowing")
 
             serializer.tag("Id", startTimeStr)
 

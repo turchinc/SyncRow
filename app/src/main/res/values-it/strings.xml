@@ -45,6 +45,7 @@
     <string name="label_active_profile">Profilo Attivo</string>
     <string name="cd_edit_profile">Modifica Profilo</string>
     <string name="label_strava_connected">Collegato a Strava</string>
+    <string name="label_strava_synced">Sincronizzato con Strava</string>
     <string name="label_switch_profile">Cambia Profilo</string>
     <string name="label_years_format">%1$d anni</string>
     <string name="title_new_profile">Nuovo Profilo</string>
@@ -59,6 +60,15 @@
     <string name="gender_female">Femmina</string>
     <string name="gender_other">Altro</string>
     <string name="btn_connect_strava">COLLEGA STRAVA</string>
+    <string name="btn_disconnect_strava">SCOLLEGA STRAVA</string>
+    <string name="btn_sync_strava">SINCRONIZZA SU STRAVA</string>
+    <string name="strava_connected_success">Collegato con successo a Strava!</string>
+    <string name="strava_disconnected_success">Strava scollegato.</string>
+    <string name="strava_connection_error">Impossibile collegarsi a Strava.</string>
+    <string name="strava_syncing">Sincronizzazione con Strava...</string>
+    <string name="strava_sync_success">Allenamento sincronizzato su Strava!</string>
+    <string name="strava_sync_error">Errore durante la sincronizzazione su Strava.</string>
+    <string name="error_strava_credentials_missing">Credenziali Strava non configurate in local.properties</string>
 
     <string name="dialog_delete_workout_title">Elimina Allenamento</string>
     <string name="dialog_delete_workout_message">Sei sicuro di voler eliminare questo allenamento? Questa azione non può essere annullata.</string>
@@ -80,4 +90,8 @@
     <string name="lang_de">Tedesco</string>
     <string name="lang_es">Spagnolo</string>
     <string name="lang_it">Italiano</string>
+
+    <string name="error_bluetooth_disabled">Il Bluetooth è disattivato. Per favore, attivalo.</string>
+    <string name="error_no_rower_selected">Nessun vogatore collegato. Seleziona prima l\'hardware.</string>
+    <string name="error_rower_connection_failed">Errore di connessione al vogatore: %1$s</string>
 </resources>

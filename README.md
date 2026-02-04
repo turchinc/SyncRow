@@ -1,36 +1,35 @@
 # SyncRow: Technical Specification & Modular Architecture
 
 ## 1. Project Vision
-A lightweight, high-performance Android rowing app for the Pixel ecosystem. Designed for the Skandika Styrke II, featuring a modular backend to support multiple users and fitness platforms. Domain: [syncrow.ing](https://syncrow.ing)
+A lightweight, high-performance Android rowing app for the Pixel ecosystem. Designed for the Skandika Styrke II, featuring a modular backend to support multiple users and fitness platforms. Official Homepage: [syncrow.ing](https://syncrow.ing)
 
-## 2. Recent Progress: MVP Completion
+## 2. Recent Progress: Phase 2 Complete
 We have successfully implemented:
-- **Dynamic FTMS Parser**: Robust bit-flag decoding for the 0x2AD1 characteristic. Verified against Skandika/FS hardware, correctly handling UINT24 distance shifts.
-- **Persistent Profile System**: Multi-user support with auto-loading of last-used profile and saved hardware (MAC addresses).
-- **Localization Engine**: Instant UI language switching (EN, FR, DE, ES, IT) saved per-user.
-- **History & Export**: Full workout history with per-second metric recording and TCX file export via Android FileProvider.
+- **Full Strava Integration**: Seamless OAuth2 flow with custom URI redirects (`syncrow://strava-auth`). Workouts are uploaded as `VirtualRow` activities including Watts, SPM, and HR data.
+- **Robust Hardware HAL**: Production-ready FTMS and HRM support via RxAndroidBle, with smart smoothing for Power, Pace, and Heart Rate (handling sensor dropouts).
+- **Workout History & Management**: Full local database history with detailed summary views, multi-delete selection mode, and TCX export capability.
+- **Project Homepage**: A modern landing page located in `/web`, ready for Firebase Hosting deployment.
 
 ## 3. System Architecture
-- **HAL**: `FtmsRowingMachine` & `BleHeartRateMonitor` providing reactive streams via RxAndroidBle.
-- **Persistence**: Room DB recording high-fidelity `MetricPoints` for every second of every workout.
-- **UI**: Jetpack Compose architecture with a shared `AndroidViewModel` for unified session management.
+- **HAL**: `FtmsRowingMachine` & `BleHeartRateMonitor` providing reactive streams.
+- **Persistence**: Room DB recording high-fidelity `MetricPoints` for every second of every workout. Supports multi-user profiles and persistent hardware pairing.
+- **UI**: Jetpack Compose architecture with shared `WorkoutViewModel` for unified state management.
+- **Web**: Tailwind-based static landing page for project visibility.
 
 ## 4. Current Development Status
-**STATUS: Phase 1 (MVP) COMPLETE. Entering Phase 2.**
+**STATUS: Phase 1 & 2 COMPLETE. Entering Phase 3 (Training & Coaching).**
 
-The app is now a fully functional standalone rowing computer capable of recording and sharing standard fitness data.
+See [STATUS.md](./STATUS.md) for the detailed implementation checklist.
 
-### Next Step: Platform Integration & Customization
-- **Strava Integration**: OAuth2 flow to upload TCX files directly from the app.
-- **Customizable Dashboard**: Allow users to select their primary, large-display metric (e.g., focus on Watts, Pace, or Heart Rate).
+### Next Step: Advanced Training Module
+- **Interval Workouts**: Implementation of the structured sessions defined in [Workouts.md](./Workouts.md).
+- **Target Tracking**: Visual indicators (Gauges) to help users stay within specific SPM or Watt ranges.
+- **Ghost Racing**: Ability to select a previous performance and race against it in real-time.
 
 ## 5. Future Roadmap
 
-### Phase 3: Advanced Coaching & Engagement (Pro Version)
-- **Custom Workout Builder**: Define intervals (e.g., 4 x 500m with 90s rest).
-- **Flexible Pace Boat / Ghost Racer**:
-    - Users can race against a static, predefined pace.
-    - Users can select a previous workout from their history to race against as a "ghost," providing a clear measure of progress.
-- **Target Tracking**: Visual indicators for staying within specific Watt or SPM ranges during interval training.
-- **Zone Training**: Heart rate zone color-coding based on user profile age/max HR.
-- **Long-Term Progress Reporting**: Visual charts showing performance trends over time (e.g., "Is my 5000m time improving?").
+### Phase 3: Coaching & Engagement
+- **Workout Builder**: Define custom intervals (e.g., 4 x 500m with 90s rest).
+- **Real-time Prompts**: Audio/Visual feedback for technique and intensity changes.
+- **Progress Reporting**: Personal Bests tracking and visual performance trends over time.
+- **Ghost Racer**: Interactive UI for racing against historical workout data.

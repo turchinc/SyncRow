@@ -45,6 +45,7 @@
     <string name="label_active_profile">Aktives Profil</string>
     <string name="cd_edit_profile">Profil bearbeiten</string>
     <string name="label_strava_connected">Mit Strava verbunden</string>
+    <string name="label_strava_synced">Mit Strava synchronisiert</string>
     <string name="label_switch_profile">Profil wechseln</string>
     <string name="label_years_format">%1$d J.</string>
     <string name="title_new_profile">Neues Profil</string>
@@ -59,6 +60,15 @@
     <string name="gender_female">Weiblich</string>
     <string name="gender_other">Andere</string>
     <string name="btn_connect_strava">STRAVA VERBINDEN</string>
+    <string name="btn_disconnect_strava">STRAVA TRENNEN</string>
+    <string name="btn_sync_strava">AUF STRAVA SYNCHRONISIEREN</string>
+    <string name="strava_connected_success">Erfolgreich mit Strava verbunden!</string>
+    <string name="strava_disconnected_success">Strava-Verbindung getrennt.</string>
+    <string name="strava_connection_error">Verbindung mit Strava fehlgeschlagen.</string>
+    <string name="strava_syncing">Wird auf Strava synchronisiert...</string>
+    <string name="strava_sync_success">Training auf Strava synchronisiert!</string>
+    <string name="strava_sync_error">Synchronisierung mit Strava fehlgeschlagen.</string>
+    <string name="error_strava_credentials_missing">Strava-Anmeldedaten nicht in local.properties konfiguriert</string>
 
     <string name="dialog_delete_workout_title">Training löschen</string>
     <string name="dialog_delete_workout_message">Bist du sicher, dass du dieses Training löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.</string>

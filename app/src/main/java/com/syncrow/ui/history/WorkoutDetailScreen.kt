@@ -2,9 +2,7 @@ package com.syncrow.ui.history
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +27,7 @@ fun WorkoutDetailScreen(viewModel: WorkoutViewModel, workoutId: Long, onBack: ()
     val scope = rememberCoroutineScope()
     val workouts by viewModel.getWorkoutsForCurrentUser().collectAsState(initial = emptyList())
     val workout = workouts.find { it.id == workoutId }
+    val currentUser by viewModel.currentUser.collectAsState()
     
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -121,6 +120,29 @@ fun WorkoutDetailScreen(viewModel: WorkoutViewModel, workoutId: Long, onBack: ()
                     Icon(Icons.Default.Share, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.btn_export_tcx))
+                }
+                
+                if (currentUser?.stravaToken != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    val isSynced = w.stravaActivityId != null
+                    Button(
+                        onClick = { viewModel.syncWorkoutToStrava(workoutId) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = if (isSynced) Color.DarkGray else Color(0xFFFC4C02)),
+                        enabled = true // Always enabled to allow re-syncing if deleted on server
+                    ) {
+                        Icon(if (isSynced) Icons.Default.SyncProblem else Icons.Default.Sync, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (isSynced) "RE-SYNC TO STRAVA" else stringResource(R.string.btn_sync_strava))
+                    }
+                    if (isSynced) {
+                        Text(
+                            text = stringResource(R.string.label_strava_synced),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
         } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

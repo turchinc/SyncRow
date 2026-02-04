@@ -45,6 +45,7 @@
     <string name="label_active_profile">Active Profile</string>
     <string name="cd_edit_profile">Edit Profile</string>
     <string name="label_strava_connected">Connected to Strava</string>
+    <string name="label_strava_synced">Synced to Strava</string>
     <string name="label_switch_profile">Switch Profile</string>
     <string name="label_years_format">%1$d yrs</string>
     <string name="title_new_profile">New Profile</string>
@@ -59,6 +60,15 @@
     <string name="gender_female">Female</string>
     <string name="gender_other">Other</string>
     <string name="btn_connect_strava">CONNECT STRAVA</string>
+    <string name="btn_disconnect_strava">DISCONNECT STRAVA</string>
+    <string name="btn_sync_strava">SYNC TO STRAVA</string>
+    <string name="strava_connected_success">Successfully connected to Strava!</string>
+    <string name="strava_disconnected_success">Strava disconnected.</string>
+    <string name="strava_connection_error">Failed to connect to Strava.</string>
+    <string name="strava_syncing">Syncing to Strava...</string>
+    <string name="strava_sync_success">Workout synced to Strava!</string>
+    <string name="strava_sync_error">Failed to sync to Strava.</string>
+    <string name="error_strava_credentials_missing">Strava Client ID not configured in local.properties</string>
 
     <string name="dialog_delete_workout_title">Delete Workout</string>
     <string name="dialog_delete_workout_message">Are you sure you want to delete this workout? This action cannot be undone.</string>

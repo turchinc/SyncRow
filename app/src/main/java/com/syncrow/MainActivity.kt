@@ -1,8 +1,10 @@
 package com.syncrow
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
@@ -20,12 +22,16 @@ import com.syncrow.ui.workout.WorkoutViewModel
 import com.syncrow.ui.workout.ToastEvent
 
 class MainActivity : AppCompatActivity() {
+    
+    private lateinit var viewModel: WorkoutViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         val app = application as SyncRowApplication
         val rxBleClient = app.rxBleClient
         val db = app.database
+        val stravaRepository = app.stravaRepository
 
         setContent {
             val context = LocalContext.current
@@ -33,10 +39,14 @@ class MainActivity : AppCompatActivity() {
                 arrayOf(
                     Manifest.permission.BLUETOOTH_SCAN,
                     Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.ACCESS_FINE_LOCATION
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             } else {
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
             }
 
             val launcher = rememberLauncherForActivityResult(
@@ -52,29 +62,31 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel: WorkoutViewModel = viewModel(
+                    viewModel = viewModel(
                         factory = WorkoutViewModel.Factory(
                             app,
                             rxBleClient,
                             db.userDao(),
                             db.workoutDao(),
-                            db.metricPointDao()
+                            db.metricPointDao(),
+                            stravaRepository
                         )
                     )
 
                     // Collect and show toast messages from ViewModel
                     LaunchedEffect(viewModel.toastEvent) {
                         viewModel.toastEvent.collect { event ->
-                            when (event) {
+                            val message = when (event) {
                                 is ToastEvent.Resource -> {
-                                    val message = if (event.args.isEmpty()) {
+                                    if (event.args.isEmpty()) {
                                         context.getString(event.resId)
                                     } else {
                                         context.getString(event.resId, *event.args.toTypedArray())
                                     }
-                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }
+                                is ToastEvent.String -> event.message
                             }
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         }
                     }
 
@@ -82,6 +94,30 @@ class MainActivity : AppCompatActivity() {
                         viewModel = viewModel,
                         onQuit = { finish() }
                     )
+                }
+            }
+        }
+        
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        intent?.data?.let { uri ->
+            Log.d("SyncRow", "Received Intent URI: $uri")
+            // Handle both custom scheme and legacy http://localhost
+            if ((uri.scheme == "syncrow" && uri.host == "strava-auth") || 
+                (uri.scheme == "http" && uri.host == "localhost")) {
+                val code = uri.getQueryParameter("code")
+                if (code != null) {
+                    Log.d("SyncRow", "Found Auth Code: $code")
+                    if (::viewModel.isInitialized) {
+                        viewModel.completeStravaAuth(code)
+                    }
                 }
             }
         }
