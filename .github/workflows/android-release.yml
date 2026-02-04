@@ -5,13 +5,16 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  contents: write
-
 jobs:
   build:
     name: Build and Release APK
     runs-on: ubuntu-latest
+    env:
+      # Load secrets into environment variables to avoid context issues in 'if' conditions
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      ALIAS: ${{ secrets.ALIAS }}
+      KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
     steps:
       - name: Checkout Code
@@ -36,7 +39,7 @@ jobs:
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         id: sign_app
-        if: secrets.SIGNING_KEY != ''
+        if: env.SIGNING_KEY != ''
         with:
           releaseDirectory: app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
