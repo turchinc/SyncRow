@@ -10,7 +10,7 @@ jobs:
     name: Build and Release APK
     runs-on: ubuntu-latest
     env:
-      # Load secrets into environment variables to avoid context issues in 'if' conditions
+      # Load secrets into environment variables for safe usage in conditional logic
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       ALIAS: ${{ secrets.ALIAS }}
       KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -25,7 +25,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
+          # Cache management is now handled by the specific Gradle action below
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -46,6 +49,7 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 34.0.0
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
