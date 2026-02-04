@@ -33,3 +33,9 @@ See [STATUS.md](./STATUS.md) for the detailed implementation checklist.
 - **Real-time Prompts**: Audio/Visual feedback for technique and intensity changes.
 - **Progress Reporting**: Personal Bests tracking and visual performance trends over time.
 - **Ghost Racer**: Interactive UI for racing against historical workout data.
+
+## 6. Licensing Notice
+
+SyncRow is licensed under the Business Source License 1.1.
+Forks may not be distributed via public application stores
+prior to 2029-02-04 without written permission.

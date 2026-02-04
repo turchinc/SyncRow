@@ -1,39 +1,67 @@
 Business Source License 1.1
 
-Parameters:
+Copyright (c) 2024–2026 SyncRow Authors
 
-- Change Date: 2029-02-04
-- Licensed Work: SyncRow
-- Change License: Apache License, Version 2.0
-- Additional Use Grant: 
-    You may use the Licensed Work for any non-commercial purpose, including 
-    personal use and educational modification. You are strictly prohibited 
-    from redistributing, rebranding, or publishing the Licensed Work 
-    (or any derivative works) to any public application store or marketplace, 
-    including but not limited to the Google Play Store and Amazon Appstore, 
-    without prior written consent from the Licensor.
+Parameters
+-----------
 
-----------------------------------------------------------------------
+Licensed Work: SyncRow
 
-License Text:
+Change Date: 2029-02-04
 
-The Licensor hereby grants you the right to copy, modify, create derivative 
-works, redistribute, and display the Licensed Work subject to the terms 
-of this License.
+Change License: Apache License, Version 2.0
 
-This License is not an Open Source license. However, on the Change Date, 
-the Licensed Work will automatically become subject to the terms of the 
-Change License.
 
-You must comply with the terms of this License until the Change Date. 
-Your right to copy, modify, create derivative works, redistribute, and 
-display the Licensed Work are subject to the Additional Use Grant. 
+Use Limitation
+--------------
+
+Prior to the Change Date, the Licensed Work may not be used for commercial
+purposes.
+
+
+Additional Use Grant
+--------------------
+
+Prior to the Change Date, the Licensed Work may be used for personal,
+educational, and other non-commercial purposes.
+
+Use of the Licensed Work, or any derivative works, in a public application
+store or marketplace (including but not limited to Google Play Store,
+Amazon Appstore, or Apple App Store) is prohibited prior to the Change Date,
+except by the Licensor.
+
+
+-----------------------------------------------------------------------
+
+Business Source License 1.1
+
+Licensor: the person or entity that creates or contributes to the creation
+of the Licensed Work.
+
+Licensed Work: the work that is the subject of this License, made available
+under this License.
+
+The Licensor hereby grants you the right to copy, modify, create derivative
+works, redistribute, and display the Licensed Work subject to the terms of
+this License.
+
+This License is not an Open Source license. However, on the Change Date, the
+Licensed Work will automatically become subject to the terms of the Change
+License.
+
+You must comply with the terms of this License until the Change Date.
+Your rights to copy, modify, create derivative works, redistribute, and
+display the Licensed Work are subject to the Use Limitation and the
+Additional Use Grant.
 
 After the Change Date, your rights will be governed by the Change License.
 
-All copies of the Licensed Work and any derivative works must include 
-this License and all copyright notices.
+All copies of the Licensed Work and any derivative works must include this
+License and all copyright notices.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-OR IMPLIED. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, 
-DAMAGES OR OTHER LIABILITY.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

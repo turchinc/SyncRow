@@ -74,6 +74,11 @@ This document provides a detailed checklist of the project's status, broken down
 
 ## Phase 3: Workout and Training Features (IN PROGRESS)
 
+- [x] **Release v0.8 Preparation**
+  - [x] Configured GitHub CI/CD for automated APK releases.
+  - [x] Secured Strava API secrets via environment variables.
+  - [x] Updated versioning to 0.8.
+  - [x] Aligned build configuration with BSL 1.1 license requirements.
 - [ ] **Training Module**
   - [ ] Training editor for designing rowing intervals.
   - [ ] Pre-defined training sessions (Foundation, SPM Ladder, The Pyramid, etc.).

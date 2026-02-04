@@ -12,6 +12,12 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
+// SYNC: Automatically copy the root LICENSE into the app assets during build
+val copyLicenseTask = tasks.register<Copy>("copyLicense") {
+    from(rootProject.file("LICENSE"))
+    into(layout.buildDirectory.dir("generated/assets/license"))
+}
+
 android {
     namespace = "com.syncrow"
     compileSdk = 34
@@ -20,20 +26,36 @@ android {
         applicationId = "com.syncrow"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 8
+        versionName = "0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
 
-        // Using user-provided credentials as defaults for testing
-        val stravaId = localProperties.getProperty("strava_client_id") ?: "199789"
-        val stravaSecret = localProperties.getProperty("strava_client_secret") ?: "1aa6f8500d31538c98beb0ab792d453558bb4a12"
+        // SECURE: Pulled from local.properties (local dev) or Environment variables (CI)
+        val stravaId = localProperties.getProperty("strava_client_id") 
+            ?: System.getenv("STRAVA_CLIENT_ID") 
+            ?: ""
+        val stravaSecret = localProperties.getProperty("strava_client_secret") 
+            ?: System.getenv("STRAVA_CLIENT_SECRET") 
+            ?: ""
 
         buildConfigField("String", "STRAVA_CLIENT_ID", "\"$stravaId\"")
         buildConfigField("String", "STRAVA_CLIENT_SECRET", "\"$stravaSecret\"")
+    }
+
+    androidResources {
+        // SYNC: Restrict to officially supported languages from AGENTS.md
+        localeFilters += listOf("en", "fr", "de", "es", "it")
+    }
+
+    sourceSets {
+        getByName("main") {
+            // Register the generated directory as an assets source
+            assets.srcDirs(copyLicenseTask)
+        }
     }
 
     buildTypes {
