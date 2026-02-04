@@ -58,8 +58,31 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            // Retrieve signing credentials from env vars (CI) or local properties (Local)
+            val keystorePath = System.getenv("SIGNING_KEY_PATH") 
+                ?: localProperties.getProperty("signing_key_path")
+            
+            if (keystorePath != null) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEY_STORE_PASSWORD") 
+                    ?: localProperties.getProperty("key_store_password")
+                keyAlias = System.getenv("ALIAS") 
+                    ?: localProperties.getProperty("alias")
+                keyPassword = System.getenv("KEY_PASSWORD") 
+                    ?: localProperties.getProperty("key_password")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // Apply the signing config if it's set up
+            if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

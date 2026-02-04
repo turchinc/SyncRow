@@ -10,7 +10,7 @@ jobs:
     name: Build and Release APK
     runs-on: ubuntu-latest
     env:
-      # Load secrets into environment variables for safe usage in conditional logic
+      # Secrets are passed to steps via env vars
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       ALIAS: ${{ secrets.ALIAS }}
       KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -25,7 +25,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          # Cache management is now handled by the specific Gradle action below
+          # Cache is handled by gradle-build-action
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -33,29 +33,27 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Decode Keystore
+        if: env.SIGNING_KEY != ''
+        run: |
+          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > app/keystore.jks
+        
       - name: Build with Gradle
         run: ./gradlew assembleRelease
         env:
           STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        if: env.SIGNING_KEY != ''
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: 34.0.0
+          # Signing Config
+          SIGNING_KEY_PATH: ${{ github.workspace }}/app/keystore.jks
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ${{ steps.sign_app.outputs.signedReleaseFile || 'app/build/outputs/apk/release/app-release-unsigned.apk' }}
+            app/build/outputs/apk/release/app-release.apk
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
