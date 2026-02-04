@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncRow | Free Rowing App for Strava Users</title>
-    <meta name="description" content="SyncRow is a free Android rowing app that syncs workouts to Strava as Virtual Row. No subscription needed. Tested on Pixel 7 and Skandika Styrke II.">
+    <title>SyncRow | Application de rameur gratuite pour Strava</title>
+    <meta name="description" content="SyncRow est une application de rameur Android gratuite qui synchronise tes entraînements avec Strava en tant que Virtual Row. Aucun abonnement requis. Testé sur Pixel 7 et Skandika Styrke II.">
     <link rel="alternate" hreflang="en" href="https://syncrow.ing/" />
     <link rel="alternate" hreflang="fr" href="https://syncrow.ing/fr/" />
     <link rel="alternate" hreflang="de" href="https://syncrow.ing/de/" />
@@ -25,20 +25,20 @@
     <!-- Navigation -->
     <nav class="container mx-auto px-6 py-8 flex justify-between items-center">
         <div class="flex items-center space-x-3">
-            <img src="logo.png" alt="SyncRow Logo" class="h-10 w-10" onerror="this.style.display='none'">
+            <img src="../logo.png" alt="SyncRow Logo" class="h-10 w-10" onerror="this.style.display='none'">
             <span class="text-2xl font-extrabold tracking-tight">SyncRow</span>
         </div>
         <div class="flex items-center space-x-4 md:space-x-6 font-medium text-slate-600">
-            <!-- Language Switcher -->
+            <!-- Sélecteur de langue -->
             <select onchange="location = this.value" class="bg-transparent text-sm focus:outline-none cursor-pointer border border-slate-200 rounded px-2 py-1">
-                <option value="/" selected>EN</option>
-                <option value="/fr/">FR</option>
+                <option value="/">EN</option>
+                <option value="/fr/" selected>FR</option>
                 <option value="/de/">DE</option>
                 <option value="/es/">ES</option>
                 <option value="/it/">IT</option>
             </select>
-            <a href="#features" class="hidden md:block hover:text-blue-600 transition">Features</a>
-            <a href="https://github.com/turchinc/syncrow" class="hover:text-blue-600 transition" aria-label="GitHub Repository">
+            <a href="#features" class="hidden md:block hover:text-blue-600 transition">Fonctionnalités</a>
+            <a href="https://github.com/turchinc/syncrow" class="hover:text-blue-600 transition" aria-label="Dépôt GitHub">
                 <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
                 </svg>
@@ -46,23 +46,23 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Section Héros -->
     <header class="container mx-auto px-6 pt-16 pb-24 text-center md:text-left flex flex-col md:flex-row items-center">
         <div class="md:w-1/2">
             <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
-                Your Rowing, <br><span class="gradient-text">Syncronized.</span>
+                Ton aviron, <br><span class="gradient-text">Synchronisé.</span>
             </h1>
             <p class="text-xl text-slate-600 mb-10 max-w-lg">
-                A lightweight Android rowing app designed for the Android ecosystem and tested on Pixel 7.
-                Experience real-time telemetry, <strong>seamless Strava integration</strong>, and multi-user support on a single device.
+                Une application légère pour Android conçue pour l'écosystème Android et testée sur Pixel 7.
+                Découvre la télémétrie en temps réel, une <strong>intégration Strava fluide</strong>, et le support multi-utilisateur sur un seul appareil.
             </p>
             <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <a href="https://github.com/turchinc/syncrow" class="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-center flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.61-4.041-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    <span>View on GitHub</span>
+                    <span>Voir sur GitHub</span>
                 </a>
                 <a href="#features" class="bg-white border border-slate-200 text-slate-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-50 transition text-center">
-                    Learn More
+                    En savoir plus
                 </a>
             </div>
         </div>
@@ -73,16 +73,16 @@
                 </div>
                 <div class="p-4 pt-10 text-white space-y-4">
                     <div class="h-32 rounded-xl bg-blue-600 p-4">
-                        <p class="text-xs opacity-80 uppercase">500m PACE</p>
+                        <p class="text-xs opacity-80 uppercase">ALLURE 500m</p>
                         <p class="text-3xl font-bold">1:52.4</p>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="h-24 rounded-xl bg-slate-800 p-3">
-                            <p class="text-[10px] opacity-60 uppercase">Power</p>
+                            <p class="text-[10px] opacity-60 uppercase">Puissance</p>
                             <p class="text-xl font-bold">245W</p>
                         </div>
                         <div class="h-24 rounded-xl bg-slate-800 p-3">
-                            <p class="text-[10px] opacity-60 uppercase">Stroke</p>
+                            <p class="text-[10px] uppercase">Cadence</p>
                             <p class="text-xl font-bold">28</p>
                         </div>
                     </div>
@@ -95,90 +95,89 @@
                             <div class="w-full bg-blue-500 h-4/5 rounded-t-sm"></div>
                             <div class="w-full bg-blue-500 h-2/3 rounded-t-sm"></div>
                          </div>
-                         <p class="text-[10px] opacity-60 mt-2 uppercase text-blue-400 font-bold tracking-widest">HEART RATE: 142 BPM</p>
+                         <p class="text-[10px] opacity-60 mt-2 uppercase text-blue-400 font-bold tracking-widest">FC : 142 BPM</p>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Features Section -->
+    <!-- Section Fonctionnalités -->
     <section id="features" class="bg-white py-24">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-extrabold mb-4">Built for Rowers that do not want another subscription,</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto italic">but DO want sync their workouts to Strava. Optimized for Skandika Styrke II and
-                    FTMS-compatible hardware. Tested on Pixel 7 and HOTWAV Note 13 Max. Ymmv. </p>
+                <h2 class="text-4xl font-extrabold mb-4">Conçu pour les rameurs qui ne veulent pas d'un autre abonnement,</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto italic">mais qui VEULENT synchroniser leurs entraînements avec Strava. Optimisé pour Skandika Styrke II et le matériel compatible FTMS. Testé sur Pixel 7 et HOTWAV Note 13 Max. </p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-12">
-                <!-- Feature 1 -->
+                <!-- Fonctionnalité 1 -->
                 <div class="space-y-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold">Dynamic FTMS Parser for BLE rowing devices</h3>
-                    <p class="text-slate-600">Robust decoding for standard bluetooth low energy rowing machines. Handles all common fields sent by my Skandika rower ;-).</p>
+                    <h3 class="text-xl font-bold">Analyseur FTMS dynamique pour les appareils BLE</h3>
+                    <p class="text-slate-600">Décodage robuste pour les rameurs Bluetooth standards. Gère tous les champs courants envoyés par mon rameur Skandika ;-).</p>
                 </div>
-                <!-- Feature 2 -->
+                <!-- Fonctionnalité 2 -->
                 <div class="space-y-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold">Multi-User Profiles</h3>
-                    <p class="text-slate-600">Saved profile data including weight, age, and language preferences. Auto-connects to your preferred hardware.</p>
+                    <h3 class="text-xl font-bold">Profils Multi-Utilisateurs</h3>
+                    <p class="text-slate-600">Données de profil enregistrées, y compris le poids, l'âge et les préférences linguistiques. Se connecte automatiquement à ton matériel préféré.</p>
                 </div>
-                <!-- Feature 3 -->
+                <!-- Fonctionnalité 3 -->
                 <div class="space-y-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold">Strava Cloud Sync</h3>
-                    <p class="text-slate-600">Directly upload your rowing sessions to Strava as <strong>Virtual Row</strong>. No manual exports needed, though TCX is available for other platforms.</p>
+                    <h3 class="text-xl font-bold">Synchronisation Cloud Strava</h3>
+                    <p class="text-slate-600">Télécharge directement tes séances sur Strava en tant que <strong>Virtual Row</strong>. Pas besoin d'exports manuels, bien que le TCX soit disponible.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Strava Blurb Section -->
+    <!-- Section Strava -->
     <section class="bg-slate-100 py-20">
         <div class="container mx-auto px-6 text-center">
-            <h2 class="text-3xl font-extrabold mb-6">The Best Free Strava Sync for Rowers</h2>
+            <h2 class="text-3xl font-extrabold mb-6">La meilleure synchronisation Strava gratuite pour les rameurs</h2>
             <p class="text-lg text-slate-600 max-w-3xl mx-auto mb-8">
-                Stop paying for premium subscriptions just to get your rowing data into Strava. SyncRow acts as your
-                <strong>Strava Bridge</strong> for Skandika and other FTMS rowing machines. Your workouts appear as
-                official <em>Virtual Row</em> activities, complete with power, stroke rate, and heart rate data.
+                Arrête de payer des abonnements premium juste pour avoir tes données de rameur dans Strava. SyncRow agit comme ton
+                <strong>Pont Strava</strong> pour Skandika et autres rameurs FTMS. Tes séances apparaissent comme des
+                activités <em>Virtual Row</em> officielles, avec puissance, cadence et rythme cardiaque.
             </p>
             <div class="inline-flex items-center space-x-2 text-blue-600 font-bold">
-                <span>Free forever</span>
+                <span>Gratuit à vie</span>
                 <span>•</span>
-                <a href="https://github.com/turchinc/syncrow/blob/main/LICENSE" class="hover:underline">Source Available</a>
+                <a href="https://github.com/turchinc/syncrow/blob/main/LICENSE" class="hover:underline">Code accessible</a>
                 <span>•</span>
-                <span>No Ads</span>
+                <span>Sans publicité</span>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- Pied de page -->
     <footer class="bg-slate-900 text-slate-400 py-12">
         <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
             <div class="mb-8 md:mb-0">
                 <span class="text-white font-bold text-xl">SyncRow</span>
-                <p class="mt-2 text-sm">Rowing technology for the modern era.</p>
-                <p class="mt-4 text-sm">Contact: <a href="mailto:info@syncrow.ing" class="text-blue-400 hover:underline">info@syncrow.ing</a></p>
+                <p class="mt-2 text-sm">La technologie de l'aviron pour l'ère moderne.</p>
+                <p class="mt-4 text-sm">Contact : <a href="mailto:info@syncrow.ing" class="text-blue-400 hover:underline">info@syncrow.ing</a></p>
                 <div class="mt-6">
                     <a href="https://www.buymeacoffee.com/J8v9jSOgUA" target="_blank">
-                        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 145px !important;" >
+                        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Offre-moi un café" style="height: 40px !important;width: 145px !important;" >
                     </a>
                 </div>
             </div>
             <div class="flex space-x-6">
-                <a href="https://github.com/turchinc/syncrow" class="hover:text-white transition">GitHub Repo</a>
+                <a href="https://github.com/turchinc/syncrow" class="hover:text-white transition">Dépôt GitHub</a>
                 <a href="https://syncrow.ing" class="hover:text-white transition">syncrow.ing</a>
             </div>
         </div>
         <div class="text-center mt-12 text-xs opacity-50 uppercase tracking-widest">
-            &copy; 2026 SyncRow. All rights reserved.
+            &copy; 2026 SyncRow. Tous droits réservés.
         </div>
     </footer>
 </body>

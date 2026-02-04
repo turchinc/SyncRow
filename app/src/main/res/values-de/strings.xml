@@ -5,6 +5,7 @@
     <string name="btn_hardware">HARDWARE</string>
     <string name="btn_profile">PROFIL</string>
     <string name="btn_quit">APP BEENDEN</string>
+    <string name="btn_about">ÜBER</string>
     <string name="label_current_user">Aktueller Benutzer: %1$s</string>
     <string name="loading">Wird geladen...</string>
 
@@ -94,4 +95,11 @@
     <string name="error_bluetooth_disabled">Bluetooth ist deaktiviert. Bitte aktiviere es.</string>
     <string name="error_no_rower_selected">Kein Rudergerät verbunden. Wähle bitte zuerst die Hardware aus.</string>
     <string name="error_rower_connection_failed">Fehler beim Verbinden mit dem Rudergerät: %1$s</string>
+
+    <!-- About Screen -->
+    <string name="title_about">Über SyncRow</string>
+    <string name="about_description">SyncRow ist eine leichtgewichtige Open-Source-Android-Ruder-App, die entwickelt wurde, um die Lücke zwischen Indoor-Ruder-Hardware und modernen Fitness-Plattformen wie Strava zu schließen. Keine Abonnements, keine Werbung, nur Daten.</string>
+    <string name="btn_visit_homepage">HOMEPAGE BESUCHEN</string>
+    <string name="btn_visit_github">AUF GITHUB ANSEHEN</string>
+    <string name="label_version">Version %1$s</string>
 </resources>

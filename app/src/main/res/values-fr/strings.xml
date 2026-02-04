@@ -5,6 +5,7 @@
     <string name="btn_hardware">MATÉRIEL</string>
     <string name="btn_profile">PROFIL</string>
     <string name="btn_quit">QUITTER L\'APP</string>
+    <string name="btn_about">À PROPOS</string>
     <string name="label_current_user">Utilisateur actuel : %1$s</string>
     <string name="loading">Chargement...</string>
 
@@ -94,4 +95,11 @@
     <string name="error_bluetooth_disabled">Le Bluetooth est désactivé. Pense à l\'activer.</string>
     <string name="error_no_rower_selected">Aucun rameur connecté. Sélectionne d\'abord ton matériel.</string>
     <string name="error_rower_connection_failed">Erreur de connexion au rameur : %1$s</string>
+
+    <!-- About Screen -->
+    <string name="title_about">À propos de SyncRow</string>
+    <string name="about_description">SyncRow est une application de rameur Android légère et open-source conçue pour combler le fossé entre le matériel de rameur en salle et les plateformes de fitness modernes comme Strava. Pas d\'abonnement, pas de publicité, juste des données.</string>
+    <string name="btn_visit_homepage">VISITER LA PAGE D\'ACCUEIL</string>
+    <string name="btn_visit_github">VOIR SUR GITHUB</string>
+    <string name="label_version">Version %1$s</string>
 </resources>

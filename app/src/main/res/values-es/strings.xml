@@ -5,6 +5,7 @@
     <string name="btn_hardware">HARDWARE</string>
     <string name="btn_profile">PERFIL</string>
     <string name="btn_quit">SALIR DE LA APP</string>
+    <string name="btn_about">ACERCA DE</string>
     <string name="label_current_user">Usuario actual: %1$s</string>
     <string name="loading">Cargando...</string>
 
@@ -94,4 +95,11 @@
     <string name="error_bluetooth_disabled">Bluetooth está desactivado. Por favor, actívelo.</string>
     <string name="error_no_rower_selected">No hay remo conectado. Seleccione el hardware primero.</string>
     <string name="error_rower_connection_failed">Error al conectar con el remo: %1$s</string>
+
+    <!-- About Screen -->
+    <string name="title_about">Acerca de SyncRow</string>
+    <string name="about_description">SyncRow es una aplicación de remo Android ligera y de código abierto diseñada para cerrar la brecha entre el hardware de remo de interior y las plataformas de fitness modernas como Strava. Sin suscripciones, sin anuncios, solo datos.</string>
+    <string name="btn_visit_homepage">VISITAR PÁGINA DE INICIO</string>
+    <string name="btn_visit_github">VER EN GITHUB</string>
+    <string name="label_version">Versión %1$s</string>
 </resources>

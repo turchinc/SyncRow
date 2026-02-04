@@ -5,6 +5,7 @@
     <string name="btn_hardware">HARDWARE</string>
     <string name="btn_profile">PROFILO</string>
     <string name="btn_quit">ESCI DALL\'APP</string>
+    <string name="btn_about">INFO</string>
     <string name="label_current_user">Utente attuale: %1$s</string>
     <string name="loading">Caricamento...</string>
 
@@ -94,4 +95,11 @@
     <string name="error_bluetooth_disabled">Il Bluetooth è disattivato. Per favore, attivalo.</string>
     <string name="error_no_rower_selected">Nessun vogatore collegato. Seleziona prima l\'hardware.</string>
     <string name="error_rower_connection_failed">Errore di connessione al vogatore: %1$s</string>
+
+    <!-- About Screen -->
+    <string name="title_about">Informazioni su SyncRow</string>
+    <string name="about_description">SyncRow è un\'app per il canottaggio indoor Android leggera e open-source, progettata per colmare il divario tra l\'hardware per il canottaggio indoor e le moderne piattaforme di fitness come Strava. Niente abbonamenti, niente pubblicità, solo dati.</string>
+    <string name="btn_visit_homepage">VISITA LA HOMEPAGE</string>
+    <string name="btn_visit_github">VEDI SU GITHUB</string>
+    <string name="label_version">Versione %1$s</string>
 </resources>

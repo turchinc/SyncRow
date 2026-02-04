@@ -13,6 +13,7 @@ import com.syncrow.ui.discovery.DiscoveryScreen
 import com.syncrow.ui.profile.ProfileScreen
 import com.syncrow.ui.history.HistoryScreen
 import com.syncrow.ui.history.WorkoutDetailScreen
+import com.syncrow.ui.about.AboutScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -20,6 +21,7 @@ sealed class Screen(val route: String) {
     object Discovery : Screen("discovery")
     object Profile : Screen("profile")
     object History : Screen("history")
+    object About : Screen("about")
     object WorkoutDetail : Screen("workout_detail/{workoutId}") {
         fun createRoute(workoutId: Long) = "workout_detail/$workoutId"
     }
@@ -36,6 +38,7 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
                 onNavigateToDiscovery = { navController.navigate(Screen.Discovery.route) },
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToHistory = { navController.navigate(Screen.History.route) },
+                onNavigateToAbout = { navController.navigate(Screen.About.route) },
                 onQuit = onQuit
             )
         }
@@ -62,6 +65,11 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onNavigateToDetail = { id -> navController.navigate(Screen.WorkoutDetail.createRoute(id)) }
+            )
+        }
+        composable(Screen.About.route) {
+            AboutScreen(
+                onBack = { navController.popBackStack() }
             )
         }
         composable(

@@ -22,6 +22,7 @@ fun HomeScreen(
     onNavigateToDiscovery: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToHistory: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     onQuit: () -> Unit
 ) {
     val currentUser by viewModel.currentUser.collectAsState()
@@ -82,7 +83,16 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = onNavigateToAbout,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.btn_about), color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(
                 onClick = onQuit,
