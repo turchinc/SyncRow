@@ -33,7 +33,7 @@ jobs:
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         id: sign_app
-        if: ${{ secrets.SIGNING_KEY != '' }}
+        if: ${{ secrets.SIGNING_KEY }}
         with:
           releaseDirectory: app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
