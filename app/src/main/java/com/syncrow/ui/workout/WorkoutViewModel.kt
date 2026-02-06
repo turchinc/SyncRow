@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
@@ -51,6 +52,26 @@ data class DiscoveredDevice(
   val type: DeviceType
 )
 
+data class RuntimeSegment(
+  val type: String, // Active, Recovery, etc.
+  val durationType: String,
+  val durationValue: Int,
+  val targets: String, // formatted string like "20 SPM, 150W"
+  val label: String // "Warm-up", "Interval 1/4", etc.
+)
+
+data class TrainingSessionState(
+  val isActive: Boolean = false,
+  val planName: String = "",
+  val currentSegmentIndex: Int = 0,
+  val totalSegments: Int = 0,
+  val currentSegment: RuntimeSegment? = null,
+  val nextSegment: RuntimeSegment? = null,
+  val segmentTimeRemaining: Int = 0, // Seconds
+  val segmentDistanceRemaining: Int = 0, // Meters
+  val progress: Float = 0f
+)
+
 sealed class ToastEvent {
   data class Resource(val resId: Int, val args: List<Any> = emptyList()) : ToastEvent()
 
@@ -64,6 +85,7 @@ class WorkoutViewModel(
   private val workoutDao: WorkoutDao,
   private val metricPointDao: MetricPointDao,
   private val splitDao: SplitDao,
+  private val trainingDao: TrainingDao,
   private val stravaRepository: StravaRepository
 ) : AndroidViewModel(application) {
 
@@ -94,6 +116,14 @@ class WorkoutViewModel(
   private val _countdownSeconds = MutableStateFlow(0)
   val countdownSeconds: StateFlow<Int> = _countdownSeconds.asStateFlow()
 
+  // Training State
+  private val _trainingState = MutableStateFlow(TrainingSessionState())
+  val trainingState: StateFlow<TrainingSessionState> = _trainingState.asStateFlow()
+
+  private var runtimeSegments: List<RuntimeSegment> = emptyList()
+  private var segmentStartTime = 0
+  private var segmentStartDistance = 0
+
   val allUsers = userDao.getAllUsers()
   private val _currentUser = MutableStateFlow<User?>(null)
   val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -114,6 +144,8 @@ class WorkoutViewModel(
   val toastEvent = _toastEvent.asSharedFlow()
 
   private val toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+  private var textToSpeech: TextToSpeech? = null
+  private var ttsReady = false
 
   private var currentWorkoutId: Long? = null
   private var timerJob: Job? = null
@@ -140,12 +172,187 @@ class WorkoutViewModel(
         }
       }
     }
+
+    textToSpeech =
+      TextToSpeech(application) { status ->
+        if (status == TextToSpeech.SUCCESS) {
+          val result = textToSpeech?.setLanguage(Locale.getDefault())
+          ttsReady =
+            result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
+        }
+      }
   }
 
   override fun onCleared() {
     super.onCleared()
     toneGenerator.release()
+    textToSpeech?.shutdown()
   }
+
+  // --- Training Plan Logic ---
+
+  fun prepareTraining(planId: Long) {
+    viewModelScope.launch {
+      val plan = trainingDao.getAllTrainingPlans().first().find { it.id == planId } ?: return@launch
+      val blocks = trainingDao.getBlocksForPlanSync(planId)
+
+      val segments = mutableListOf<RuntimeSegment>()
+
+      blocks.forEach { block ->
+        val blockSegments = trainingDao.getSegmentsForBlockSync(block.id)
+        repeat(block.repeatCount) { round ->
+          blockSegments.forEach { seg ->
+            val label =
+              if (block.repeatCount > 1) "${block.name} (${round + 1}/${block.repeatCount})"
+              else block.name
+
+            val targets = mutableListOf<String>()
+            if (seg.targetSpm != null) targets.add("${seg.targetSpm} SPM")
+            if (seg.targetWatts != null) targets.add("${seg.targetWatts}W")
+            if (seg.targetPace != null) {
+              val min = seg.targetPace / 60
+              val sec = seg.targetPace % 60
+              targets.add("%d:%02d".format(min, sec))
+            }
+            if (seg.targetHr != null) targets.add("HR ${seg.targetHr}")
+
+            val targetStr = if (targets.isNotEmpty()) targets.joinToString(", ") else "Just Row"
+
+            segments.add(
+              RuntimeSegment(
+                type = seg.segmentType,
+                durationType = seg.durationType,
+                durationValue = seg.durationValue,
+                targets = targetStr,
+                label = label
+              )
+            )
+          }
+        }
+      }
+
+      runtimeSegments = segments
+      _trainingState.value =
+        TrainingSessionState(
+          isActive = true,
+          planName = plan.name,
+          totalSegments = segments.size,
+          currentSegmentIndex = 0,
+          currentSegment = segments.firstOrNull(),
+          nextSegment = segments.getOrNull(1),
+          segmentTimeRemaining =
+            if (segments.firstOrNull()?.durationType == "TIME") segments.first().durationValue
+            else 0,
+          segmentDistanceRemaining =
+            if (segments.firstOrNull()?.durationType == "DISTANCE") segments.first().durationValue
+            else 0
+        )
+    }
+  }
+
+  fun clearTraining() {
+    _trainingState.value = TrainingSessionState(isActive = false)
+    runtimeSegments = emptyList()
+  }
+
+  private fun checkSegmentCompletion(currentSecs: Int, currentDist: Int) {
+    val state = _trainingState.value
+    if (!state.isActive || state.currentSegment == null) return
+
+    val segment = state.currentSegment
+    val idx = state.currentSegmentIndex
+
+    // Calculate progress and remaining
+    if (segment.durationType == "TIME") {
+      val elapsedInSegment = currentSecs - segmentStartTime
+      val remaining = segment.durationValue - elapsedInSegment
+
+      // Audio countdown
+      if (remaining in 1..5) {
+        // Only beep once per second logic handled by update frequency (1s)
+        toneGenerator.startTone(ToneGenerator.TONE_CDMA_PIP, 150)
+      } else if (remaining == 10 && ttsReady) {
+        val next = runtimeSegments.getOrNull(idx + 1)
+        if (next != null) {
+          textToSpeech?.speak(
+            "Next segment: ${next.type}, ${next.targets}",
+            TextToSpeech.QUEUE_ADD,
+            null,
+            null
+          )
+        } else {
+          textToSpeech?.speak("Almost done!", TextToSpeech.QUEUE_ADD, null, null)
+        }
+      }
+
+      _trainingState.value =
+        state.copy(
+          segmentTimeRemaining = maxOf(0, remaining),
+          progress = elapsedInSegment.toFloat() / segment.durationValue.toFloat()
+        )
+
+      if (remaining <= 0) {
+        advanceSegment()
+      }
+    } else { // DISTANCE
+      val distInSegment = currentDist - segmentStartDistance
+      val remaining = segment.durationValue - distInSegment
+
+      // Distance countdown audio is tricky without frequent updates,
+      // but we check every 1s from timer, metrics might update faster.
+      // Let's do a simple check
+      if (remaining <= 50 && remaining > 0 && remaining % 10 == 0) { // e.g. 50m, 40m...
+        // Maybe too chatty? Just beep at 20m?
+      }
+
+      _trainingState.value =
+        state.copy(
+          segmentDistanceRemaining = maxOf(0, remaining),
+          progress = distInSegment.toFloat() / segment.durationValue.toFloat()
+        )
+
+      if (remaining <= 0) {
+        advanceSegment()
+      }
+    }
+  }
+
+  private fun advanceSegment() {
+    // Auto-split first
+    markSplit()
+
+    val state = _trainingState.value
+    val nextIndex = state.currentSegmentIndex + 1
+
+    if (nextIndex < runtimeSegments.size) {
+      val nextSeg = runtimeSegments[nextIndex]
+
+      segmentStartTime = _elapsedSeconds.value
+      segmentStartDistance = _displayMetrics.value.distance
+
+      toneGenerator.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 400)
+
+      _trainingState.value =
+        state.copy(
+          currentSegmentIndex = nextIndex,
+          currentSegment = nextSeg,
+          nextSegment = runtimeSegments.getOrNull(nextIndex + 1),
+          segmentTimeRemaining = if (nextSeg.durationType == "TIME") nextSeg.durationValue else 0,
+          segmentDistanceRemaining =
+            if (nextSeg.durationType == "DISTANCE") nextSeg.durationValue else 0,
+          progress = 0f
+        )
+    } else {
+      // Training Complete
+      toneGenerator.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 800)
+      if (ttsReady) {
+        textToSpeech?.speak("Workout Complete!", TextToSpeech.QUEUE_FLUSH, null, null)
+      }
+      finishWorkout(true)
+    }
+  }
+
+  // --- Existing Logic ---
 
   private fun loadUser() {
     viewModelScope.launch {
@@ -372,6 +579,12 @@ class WorkoutViewModel(
         splitCount = 0
         splitStartTimeMillis = now
 
+        // Reset training progress if active
+        if (_trainingState.value.isActive) {
+          segmentStartTime = 0
+          segmentStartDistance = 0
+        }
+
         startCountdown()
       } else if (_sessionState.value == SessionState.PAUSED) {
         // Resume immediately from pause, no countdown
@@ -487,6 +700,13 @@ class WorkoutViewModel(
         // GO sound
         toneGenerator.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 400)
 
+        if (ttsReady && _trainingState.value.isActive) {
+          val seg = _trainingState.value.currentSegment
+          if (seg != null) {
+            textToSpeech?.speak("${seg.type}, ${seg.targets}", TextToSpeech.QUEUE_ADD, null, null)
+          }
+        }
+
         _sessionState.value = SessionState.ROWING
         startTimer()
         startMetricsCollection()
@@ -563,6 +783,7 @@ class WorkoutViewModel(
       _elapsedSeconds.value = 0
       _displayMetrics.value = RowerMetrics(0, 0, 0, 0, _displayMetrics.value.heartRate)
       currentWorkoutId = null
+      clearTraining()
     }
   }
 
@@ -580,6 +801,7 @@ class WorkoutViewModel(
         while (true) {
           delay(1000)
           _elapsedSeconds.value += 1
+          checkSegmentCompletion(_elapsedSeconds.value, _displayMetrics.value.distance)
         }
       }
   }
@@ -716,6 +938,7 @@ class WorkoutViewModel(
     private val workoutDao: WorkoutDao,
     private val metricPointDao: MetricPointDao,
     private val splitDao: SplitDao,
+    private val trainingDao: TrainingDao,
     private val stravaRepository: StravaRepository
   ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -727,6 +950,7 @@ class WorkoutViewModel(
         workoutDao,
         metricPointDao,
         splitDao,
+        trainingDao,
         stravaRepository
       )
         as T

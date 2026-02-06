@@ -56,7 +56,10 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
     composable(Screen.Home.route) {
       HomeScreen(
         viewModel = viewModel,
-        onStartWorkout = { navController.navigate(Screen.Workout.route) },
+        onStartWorkout = {
+          viewModel.clearTraining() // Ensure standard free row
+          navController.navigate(Screen.Workout.route)
+        },
         onNavigateToTraining = { navController.navigate(Screen.TrainingList.route) },
         onNavigateToDiscovery = { navController.navigate(Screen.Discovery.route) },
         onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
@@ -87,6 +90,10 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
         onNavigateToEditor = { id ->
           navController.navigate(Screen.TrainingEditor.createRoute(id))
         },
+        onStartWorkout = { planId ->
+          viewModel.prepareTraining(planId)
+          navController.navigate(Screen.Workout.route)
+        },
         onBack = { navController.popBackStack() }
       )
     }
@@ -98,7 +105,11 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
       TrainingEditorScreen(
         viewModel = trainingViewModel,
         planId = planId,
-        onBack = { navController.popBackStack() }
+        onBack = { navController.popBackStack() },
+        onStartWorkout = { pid ->
+          viewModel.prepareTraining(pid)
+          navController.navigate(Screen.Workout.route)
+        }
       )
     }
     composable(Screen.About.route) { AboutScreen(onBack = { navController.popBackStack() }) }

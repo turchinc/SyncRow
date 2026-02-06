@@ -68,7 +68,8 @@ class MainActivity : AppCompatActivity() {
                   db.userDao(),
                   db.workoutDao(),
                   db.metricPointDao(),
-                  db.splitDao(), // Added missing argument
+                  db.splitDao(),
+                  db.trainingDao(),
                   stravaRepository
                 )
             )

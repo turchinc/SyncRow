@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,9 +30,10 @@ import com.syncrow.data.db.TrainingPlan
 fun TrainingListScreen(
   viewModel: TrainingViewModel,
   onNavigateToEditor: (Long) -> Unit,
+  onStartWorkout: (Long) -> Unit,
   onBack: () -> Unit
 ) {
-  val plans by viewModel.filteredPlans.collectAsState(initial = emptyList())
+  val planSummaries by viewModel.filteredPlans.collectAsState(initial = emptyList())
   val sortOrder by viewModel.sortOrder.collectAsState()
   val filterDifficulty by viewModel.filterDifficulty.collectAsState()
 
@@ -72,7 +74,7 @@ fun TrainingListScreen(
       }
     }
   ) { padding ->
-    if (plans.isEmpty()) {
+    if (planSummaries.isEmpty()) {
       Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
         Text(stringResource(R.string.label_no_plans))
       }
@@ -82,16 +84,18 @@ fun TrainingListScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
       ) {
-        items(plans) { plan ->
+        items(planSummaries) { summary ->
           TrainingPlanItem(
-            plan = plan,
+            plan = summary.plan,
+            totalDurationSeconds = summary.totalDurationSeconds,
             onClick = {
-              viewModel.loadPlanForEditing(plan.id)
-              onNavigateToEditor(plan.id)
+              viewModel.loadPlanForEditing(summary.plan.id)
+              onNavigateToEditor(summary.plan.id)
             },
-            onFavorite = { viewModel.toggleFavorite(plan) },
-            onDelete = { viewModel.deletePlan(plan) },
-            onCopy = { viewModel.copyPlan(plan.id) }
+            onStart = { onStartWorkout(summary.plan.id) },
+            onFavorite = { viewModel.toggleFavorite(summary.plan) },
+            onDelete = { viewModel.deletePlan(summary.plan) },
+            onCopy = { viewModel.copyPlan(summary.plan.id) }
           )
         }
       }
@@ -110,7 +114,9 @@ fun SortMenu(currentSort: String, onSortSelected: (String) -> Unit) {
       "Difficulty (Advanced-Beginner)" to R.string.sort_difficulty_desc,
       "Name" to R.string.sort_name,
       "Intensity" to R.string.sort_intensity,
-      "Created Date" to R.string.sort_date
+      "Created Date" to R.string.sort_date,
+      "Total Duration" to R.string.sort_duration_desc,
+      "Total Duration (Shortest)" to R.string.sort_duration_asc
     )
 
   IconButton(onClick = { expanded = true }) {
@@ -172,7 +178,9 @@ fun FilterMenu(currentFilter: String, onFilterSelected: (String) -> Unit) {
 @Composable
 fun TrainingPlanItem(
   plan: TrainingPlan,
+  totalDurationSeconds: Int,
   onClick: () -> Unit,
+  onStart: () -> Unit,
   onFavorite: () -> Unit,
   onDelete: () -> Unit,
   onCopy: () -> Unit
@@ -187,7 +195,23 @@ fun TrainingPlanItem(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.fillMaxWidth()
       ) {
-        Text(plan.name, style = MaterialTheme.typography.titleMedium)
+        Column(modifier = Modifier.weight(1f)) {
+          Text(plan.name, style = MaterialTheme.typography.titleMedium)
+          // Duration Display
+          val durationText =
+            if (totalDurationSeconds > 0) {
+              val mins = totalDurationSeconds / 60
+              val secs = totalDurationSeconds % 60
+              "~ %d:%02d min".format(mins, secs)
+            } else {
+              "Distance Based"
+            }
+          Text(
+            durationText,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary
+          )
+        }
         IconButton(onClick = onFavorite) {
           Icon(
             if (plan.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -220,6 +244,10 @@ fun TrainingPlanItem(
         Badge(text = intensityString)
       }
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        // Play Button
+        IconButton(onClick = onStart) {
+          Icon(Icons.Default.PlayArrow, "Start Workout", tint = MaterialTheme.colorScheme.primary)
+        }
         IconButton(onClick = onCopy) {
           Icon(Icons.Default.ContentCopy, stringResource(R.string.cd_copy))
         }

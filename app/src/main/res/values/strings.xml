@@ -162,6 +162,8 @@
     <string name="sort_name">Name</string>
     <string name="sort_intensity">Intensity</string>
     <string name="sort_date">Created Date</string>
+    <string name="sort_duration_desc">Total Duration (Longest)</string>
+    <string name="sort_duration_asc">Total Duration (Shortest)</string>
 
     <string name="block_title">Block %1$d</string>
 

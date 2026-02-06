@@ -56,10 +56,25 @@ interface SplitDao {
   suspend fun getSplitsForWorkoutSync(workoutId: Long): List<WorkoutSplit>
 }
 
+data class TrainingBlockWithSegments(
+  @Embedded val block: TrainingBlock,
+  @Relation(parentColumn = "id", entityColumn = "blockId") val segments: List<TrainingSegment>
+)
+
+data class TrainingPlanWithBlocks(
+  @Embedded val plan: TrainingPlan,
+  @Relation(entity = TrainingBlock::class, parentColumn = "id", entityColumn = "planId")
+  val blocks: List<TrainingBlockWithSegments>
+)
+
 @Dao
 interface TrainingDao {
   @Query("SELECT * FROM training_plans ORDER BY createdAt DESC")
   fun getAllTrainingPlans(): Flow<List<TrainingPlan>>
+
+  @Transaction
+  @Query("SELECT * FROM training_plans ORDER BY createdAt DESC")
+  fun getAllPlansWithDetails(): Flow<List<TrainingPlanWithBlocks>>
 
   @Query("SELECT * FROM training_plans WHERE isFavorite = 1 ORDER BY createdAt DESC")
   fun getFavoriteTrainingPlans(): Flow<List<TrainingPlan>>

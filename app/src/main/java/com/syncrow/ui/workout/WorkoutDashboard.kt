@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +17,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +30,8 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
   val elapsedSeconds by viewModel.elapsedSeconds.collectAsState()
   val sessionState by viewModel.sessionState.collectAsState()
   val countdownSeconds by viewModel.countdownSeconds.collectAsState()
+  val trainingState by viewModel.trainingState.collectAsState()
+
   val configuration = LocalConfiguration.current
   var showSaveDialog by remember { mutableStateOf(false) }
 
@@ -36,15 +40,22 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
 
   Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF001220)) {
     Box(modifier = Modifier.fillMaxSize()) {
-      if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        LandscapeLayout(metrics, elapsedSeconds, sessionState, viewModel) {
-          viewModel.pauseWorkout() // Pause immediately on STOP
+      if (trainingState.isActive) {
+        TrainingLayout(metrics, elapsedSeconds, sessionState, trainingState, viewModel) {
+          viewModel.pauseWorkout()
           showSaveDialog = true
         }
       } else {
-        PortraitLayout(metrics, elapsedSeconds, sessionState, viewModel) {
-          viewModel.pauseWorkout() // Pause immediately on STOP
-          showSaveDialog = true
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+          LandscapeLayout(metrics, elapsedSeconds, sessionState, viewModel) {
+            viewModel.pauseWorkout()
+            showSaveDialog = true
+          }
+        } else {
+          PortraitLayout(metrics, elapsedSeconds, sessionState, viewModel) {
+            viewModel.pauseWorkout()
+            showSaveDialog = true
+          }
         }
       }
 
@@ -106,6 +117,133 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
         }
       }
     )
+  }
+}
+
+@Composable
+fun TrainingLayout(
+  metrics: RowerMetrics,
+  elapsedSeconds: Int,
+  sessionState: SessionState,
+  trainingState: TrainingSessionState,
+  viewModel: WorkoutViewModel,
+  onStop: () -> Unit
+) {
+  Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    // Header
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Text(trainingState.planName, color = Color.Gray, fontSize = 14.sp)
+      Text(
+        "Segment ${trainingState.currentSegmentIndex + 1}/${trainingState.totalSegments}",
+        color = Color.Gray,
+        fontSize = 14.sp
+      )
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // Main Content Area
+    Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+      Column(
+        modifier = Modifier.align(Alignment.Center),
+        horizontalAlignment = Alignment.CenterHorizontally
+      ) {
+        // Segment Label & Targets
+        Text(
+          text = trainingState.currentSegment?.label ?: "",
+          color = Color.White,
+          fontSize = 24.sp,
+          fontWeight = FontWeight.Bold
+        )
+        Text(
+          text = trainingState.currentSegment?.targets ?: "",
+          color = Color.Cyan,
+          fontSize = 32.sp,
+          fontWeight = FontWeight.Bold,
+          textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Countdown
+        if (trainingState.currentSegment?.durationType == "TIME") {
+          Text(
+            text = formatTime(trainingState.segmentTimeRemaining),
+            color = if (trainingState.segmentTimeRemaining <= 5) Color.Red else Color.Yellow,
+            fontSize = 100.sp,
+            fontWeight = FontWeight.Black
+          )
+          Text("REMAINING", color = Color.Gray, fontSize = 16.sp)
+        } else {
+          Text(
+            text = "${trainingState.segmentDistanceRemaining}m",
+            color = Color.Yellow,
+            fontSize = 80.sp,
+            fontWeight = FontWeight.Black
+          )
+          Text("REMAINING", color = Color.Gray, fontSize = 16.sp)
+        }
+      }
+    }
+
+    // Next Segment Preview
+    if (trainingState.nextSegment != null) {
+      Surface(
+        color = Color.White.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+      ) {
+        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+          Text(
+            "NEXT:",
+            color = Color.Gray,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(end = 8.dp)
+          )
+          Column(modifier = Modifier.weight(1f)) {
+            Text(
+              text = trainingState.nextSegment.label,
+              color = Color.White,
+              fontWeight = FontWeight.Bold
+            )
+            Text(
+              text = trainingState.nextSegment.targets,
+              color = Color.LightGray,
+              fontSize = 12.sp
+            )
+          }
+          val duration =
+            if (trainingState.nextSegment.durationType == "TIME") {
+              formatTime(trainingState.nextSegment.durationValue)
+            } else {
+              "${trainingState.nextSegment.durationValue}m"
+            }
+          Text(duration, color = Color.White, fontWeight = FontWeight.Bold)
+        }
+      }
+    }
+
+    // Bottom Metrics Row (Mini Dashboard)
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+      MetricDisplay(label = "TIME", value = formatTime(elapsedSeconds), valueSize = 24.sp)
+      MetricDisplay(label = "DIST", value = "${metrics.distance}", valueSize = 24.sp)
+      MetricDisplay(label = "SPM", value = "${metrics.strokeRate}", valueSize = 24.sp)
+      MetricDisplay(label = "WATTS", value = "${metrics.power}", valueSize = 24.sp)
+      MetricDisplay(
+        label = "HR",
+        value = "${metrics.heartRate}",
+        color = Color.Red,
+        valueSize = 24.sp
+      )
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    SessionControls(sessionState, viewModel, onStop)
   }
 }
 

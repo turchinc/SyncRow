@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,7 +35,12 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrainingEditorScreen(viewModel: TrainingViewModel, planId: Long, onBack: () -> Unit) {
+fun TrainingEditorScreen(
+  viewModel: TrainingViewModel,
+  planId: Long,
+  onBack: () -> Unit,
+  onStartWorkout: (Long) -> Unit
+) {
   val plan by viewModel.editorPlan.collectAsState()
   val blocks by viewModel.editorBlocks.collectAsState()
 
@@ -61,6 +67,12 @@ fun TrainingEditorScreen(viewModel: TrainingViewModel, planId: Long, onBack: () 
           }
         },
         actions = {
+          // Do Workout Button (Only if saved)
+          if (planId != 0L) {
+            IconButton(onClick = { onStartWorkout(planId) }) {
+              Icon(Icons.Default.PlayArrow, "Start Workout")
+            }
+          }
           IconButton(
             onClick = {
               viewModel.savePlan()

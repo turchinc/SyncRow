@@ -21,6 +21,8 @@ import kotlinx.coroutines.launch
 
 data class EditorBlock(val block: TrainingBlock, val segments: List<TrainingSegment>)
 
+data class TrainingPlanSummary(val plan: TrainingPlan, val totalDurationSeconds: Int)
+
 private data class BlockData(
   val name: String,
   val repeatCount: Int,
@@ -41,7 +43,9 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
   AndroidViewModel(application) {
 
   private val prefs = application.getSharedPreferences("training_prefs", Context.MODE_PRIVATE)
-  private val _allPlans = trainingDao.getAllTrainingPlans()
+
+  // Now fetching full details to compute duration
+  private val _allPlansWithDetails = trainingDao.getAllPlansWithDetails()
   val favoritePlans = trainingDao.getFavoriteTrainingPlans()
 
   // Filter/Sort State
@@ -54,22 +58,50 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
 
   // Combined Flow for UI List
   val filteredPlans =
-    combine(_allPlans, _sortOrder, _filterDifficulty) { plans, sort, filter ->
-      var result =
-        when (filter) {
-          "All" -> plans
-          "Favorites" -> plans.filter { it.isFavorite }
-          else -> plans.filter { it.difficulty == filter }
+    combine(_allPlansWithDetails, _sortOrder, _filterDifficulty) { plansWithDetails, sort, filter ->
+
+      // 1. Map to Summary (Calculate Duration)
+      val summaries =
+        plansWithDetails.map { fullPlan ->
+          var totalSeconds = 0
+          fullPlan.blocks.forEach { blockWithSegs ->
+            var blockSeconds = 0
+            blockWithSegs.segments.forEach { seg ->
+              if (seg.durationType == DurationType.TIME.name) {
+                blockSeconds += seg.durationValue
+              } else {
+                // Estimate: 2:00/500m pace -> 0.24 sec/meter
+                blockSeconds += (seg.durationValue * 0.24).toInt()
+              }
+            }
+            totalSeconds += blockSeconds * blockWithSegs.block.repeatCount
+          }
+          TrainingPlanSummary(fullPlan.plan, totalSeconds)
         }
 
+      // 2. Filter
+      var result =
+        when (filter) {
+          "All" -> summaries
+          "Favorites" -> summaries.filter { it.plan.isFavorite }
+          else -> summaries.filter { it.plan.difficulty == filter }
+        }
+
+      // 3. Sort
       result =
         when (sort) {
-          "Name" -> result.sortedBy { it.name }
-          "Difficulty (Beginner-Advanced)" -> result.sortedBy { difficultyLevel(it.difficulty) }
+          "Name" -> result.sortedBy { it.plan.name }
+          "Difficulty (Beginner-Advanced)" ->
+            result.sortedBy { difficultyLevel(it.plan.difficulty) }
           "Difficulty (Advanced-Beginner)" ->
-            result.sortedByDescending { difficultyLevel(it.difficulty) }
-          "Intensity" -> result.sortedBy { it.intensity }
-          else -> result.sortedByDescending { it.createdAt }
+            result.sortedByDescending { difficultyLevel(it.plan.difficulty) }
+          "Intensity" -> result.sortedBy { it.plan.intensity }
+          "Total Duration" ->
+            result.sortedByDescending {
+              it.totalDurationSeconds
+            } // Longest first? Or shortest? Let's do descending.
+          "Total Duration (Shortest)" -> result.sortedBy { it.totalDurationSeconds }
+          else -> result.sortedByDescending { it.plan.createdAt }
         }
       result
     }
@@ -127,7 +159,13 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
 
   fun loadPlanForEditing(planId: Long) {
     viewModelScope.launch {
-      val plan = _allPlans.first().find { it.id == planId }
+      // We can fetch from DB directly since we have the ID
+      // But _allPlansWithDetails is a flow of list.
+      // Let's just use existing logic or fetch specifically.
+      // The Dao methods used before:
+      val planList = trainingDao.getAllTrainingPlans().first()
+      val plan = planList.find { it.id == planId }
+
       if (plan != null) {
         _editorPlan.value = plan
 
@@ -144,7 +182,8 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
 
   fun copyPlan(planId: Long) {
     viewModelScope.launch {
-      val originalPlan = _allPlans.first().find { it.id == planId } ?: return@launch
+      val planList = trainingDao.getAllTrainingPlans().first()
+      val originalPlan = planList.find { it.id == planId } ?: return@launch
 
       // Load full structure
       val blocks = trainingDao.getBlocksForPlanSync(planId)
