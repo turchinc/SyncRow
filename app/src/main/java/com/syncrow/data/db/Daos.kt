@@ -37,4 +37,21 @@ interface MetricPointDao {
 
   @Query("SELECT * FROM metric_points WHERE workoutId = :workoutId ORDER BY timestamp ASC")
   fun getPointsForWorkout(workoutId: Long): Flow<List<MetricPoint>>
+
+  // Helper to calculate averages for a split
+  @Query(
+    "SELECT * FROM metric_points WHERE workoutId = :workoutId AND timestamp >= :startTime AND timestamp <= :endTime"
+  )
+  suspend fun getPointsInRange(workoutId: Long, startTime: Long, endTime: Long): List<MetricPoint>
+}
+
+@Dao
+interface SplitDao {
+  @Insert suspend fun insertSplit(split: WorkoutSplit)
+
+  @Query("SELECT * FROM workout_splits WHERE workoutId = :workoutId ORDER BY splitIndex ASC")
+  fun getSplitsForWorkout(workoutId: Long): Flow<List<WorkoutSplit>>
+
+  @Query("SELECT * FROM workout_splits WHERE workoutId = :workoutId ORDER BY splitIndex ASC")
+  suspend fun getSplitsForWorkoutSync(workoutId: Long): List<WorkoutSplit>
 }

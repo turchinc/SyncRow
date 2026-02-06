@@ -17,6 +17,7 @@
     <string name="btn_pause">PAUSE</string>
     <string name="btn_stop">ARRÊTER</string>
     <string name="btn_resume">REPRENDRE</string>
+    <string name="btn_split">TOUR</string>
 
     <string name="label_pace">ALLURE 500m</string>
     <string name="label_power_watts">PUISSANCE (W)</string>

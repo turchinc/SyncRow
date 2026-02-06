@@ -70,6 +70,33 @@ data class MetricPoint(
 )
 
 @Entity(
+  tableName = "workout_splits",
+  foreignKeys =
+    [
+      ForeignKey(
+        entity = Workout::class,
+        parentColumns = ["id"],
+        childColumns = ["workoutId"],
+        onDelete = ForeignKey.CASCADE
+      )
+    ],
+  indices = [Index("workoutId")]
+)
+data class WorkoutSplit(
+  @PrimaryKey(autoGenerate = true) val id: Long = 0,
+  val workoutId: Long,
+  val splitIndex: Int,
+  val startTime: Long, // Epoch millis
+  val endTime: Long,
+  val distanceMeters: Int,
+  val durationSeconds: Int,
+  val avgPace: Int,
+  val avgPower: Int,
+  val avgHeartRate: Int,
+  val avgStrokeRate: Int
+)
+
+@Entity(
   tableName = "personal_bests",
   foreignKeys =
     [

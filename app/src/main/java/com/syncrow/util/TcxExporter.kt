@@ -8,6 +8,7 @@ import androidx.core.content.FileProvider
 import com.syncrow.R
 import com.syncrow.data.db.MetricPoint
 import com.syncrow.data.db.Workout
+import com.syncrow.data.db.WorkoutSplit
 import java.io.File
 import java.io.StringWriter
 import java.text.SimpleDateFormat
@@ -44,7 +45,11 @@ class TcxExporter(private val context: Context) {
     context.startActivity(chooser)
   }
 
-  fun generateTcx(workout: Workout, points: List<MetricPoint>): String {
+  fun generateTcx(
+    workout: Workout,
+    points: List<MetricPoint>,
+    splits: List<WorkoutSplit> = emptyList()
+  ): String {
     val isoFormat =
       SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
@@ -73,40 +78,54 @@ class TcxExporter(private val context: Context) {
 
       serializer.tag("Id", startTimeStr)
 
-      serializer.startTag(null, "Lap")
-      serializer.attribute(null, "StartTime", startTimeStr)
+      if (splits.isNotEmpty()) {
+        // Generate a Lap for each split
+        splits.forEach { split ->
+          val splitPoints =
+            points.filter { it.timestamp >= split.startTime && it.timestamp <= split.endTime }
 
-      serializer.tag("TotalTimeSeconds", workout.totalSeconds.toString())
-      serializer.tag("DistanceMeters", workout.totalDistanceMeters.toString())
-      serializer.tag("Intensity", "Active")
-      serializer.tag("TriggerMethod", "Manual")
+          if (splitPoints.isNotEmpty()) {
+            serializer.startTag(null, "Lap")
+            serializer.attribute(null, "StartTime", isoFormat.format(Date(split.startTime)))
 
-      serializer.startTag(null, "Track")
-      points.forEach { point ->
-        serializer.startTag(null, "Trackpoint")
-        serializer.tag("Time", isoFormat.format(Date(point.timestamp)))
-        serializer.tag("DistanceMeters", point.distance.toString())
+            serializer.tag("TotalTimeSeconds", split.durationSeconds.toString())
+            serializer.tag("DistanceMeters", split.distanceMeters.toString())
+            // Use split average heart rate if available
+            if (split.avgHeartRate > 0) {
+              serializer.startTag(null, "AverageHeartRateBpm")
+              serializer.tag("Value", split.avgHeartRate.toString())
+              serializer.endTag(null, "AverageHeartRateBpm")
+            }
+            serializer.tag("Intensity", "Active")
+            serializer.tag("TriggerMethod", "Manual")
 
-        if (point.heartRate > 0) {
-          serializer.startTag(null, "HeartRateBpm")
-          serializer.tag("Value", point.heartRate.toString())
-          serializer.endTag(null, "HeartRateBpm")
+            serializer.startTag(null, "Track")
+            splitPoints.forEach { point -> writeTrackpoint(serializer, point, isoFormat) }
+            serializer.endTag(null, "Track")
+            serializer.endTag(null, "Lap")
+          }
         }
 
-        serializer.tag("Cadence", point.strokeRate.toString())
+        // Handle any remaining time/distance after the last split as a final Lap?
+        // For "Just Row" usually the last split ends at stop.
+        // If there are points after the last split, we could add them.
+        // Assuming splits cover the whole session for now if present.
 
-        // Garmin TPX Extensions for Watts/Power
-        serializer.startTag(null, "Extensions")
-        serializer.startTag(null, "TPX")
-        serializer.attribute(null, "xmlns", "http://www.garmin.com/xmlschemas/ActivityExtension/v2")
-        serializer.tag("Watts", point.power.toString())
-        serializer.endTag(null, "TPX")
-        serializer.endTag(null, "Extensions")
+      } else {
+        // Fallback: Single Lap
+        serializer.startTag(null, "Lap")
+        serializer.attribute(null, "StartTime", startTimeStr)
 
-        serializer.endTag(null, "Trackpoint")
+        serializer.tag("TotalTimeSeconds", workout.totalSeconds.toString())
+        serializer.tag("DistanceMeters", workout.totalDistanceMeters.toString())
+        serializer.tag("Intensity", "Active")
+        serializer.tag("TriggerMethod", "Manual")
+
+        serializer.startTag(null, "Track")
+        points.forEach { point -> writeTrackpoint(serializer, point, isoFormat) }
+        serializer.endTag(null, "Track")
+        serializer.endTag(null, "Lap")
       }
-      serializer.endTag(null, "Track")
-      serializer.endTag(null, "Lap")
 
       serializer.tag("Notes", workout.notes ?: "SyncRow Virtual Row")
 
@@ -120,6 +139,34 @@ class TcxExporter(private val context: Context) {
       e.printStackTrace()
       return ""
     }
+  }
+
+  private fun writeTrackpoint(
+    serializer: XmlSerializer,
+    point: MetricPoint,
+    isoFormat: SimpleDateFormat
+  ) {
+    serializer.startTag(null, "Trackpoint")
+    serializer.tag("Time", isoFormat.format(Date(point.timestamp)))
+    serializer.tag("DistanceMeters", point.distance.toString())
+
+    if (point.heartRate > 0) {
+      serializer.startTag(null, "HeartRateBpm")
+      serializer.tag("Value", point.heartRate.toString())
+      serializer.endTag(null, "HeartRateBpm")
+    }
+
+    serializer.tag("Cadence", point.strokeRate.toString())
+
+    // Garmin TPX Extensions for Watts/Power
+    serializer.startTag(null, "Extensions")
+    serializer.startTag(null, "TPX")
+    serializer.attribute(null, "xmlns", "http://www.garmin.com/xmlschemas/ActivityExtension/v2")
+    serializer.tag("Watts", point.power.toString())
+    serializer.endTag(null, "TPX")
+    serializer.endTag(null, "Extensions")
+
+    serializer.endTag(null, "Trackpoint")
   }
 
   private fun XmlSerializer.tag(name: String, text: String) {

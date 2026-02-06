@@ -9,6 +9,7 @@ import com.syncrow.data.db.User
 import com.syncrow.data.db.UserDao
 import com.syncrow.data.db.Workout
 import com.syncrow.data.db.WorkoutDao
+import com.syncrow.data.db.WorkoutSplit
 import com.syncrow.util.TcxExporter
 import java.io.File
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -78,10 +79,16 @@ class StravaRepository(
     return user.stravaToken
   }
 
-  suspend fun uploadWorkout(workout: Workout, points: List<MetricPoint>, user: User): Boolean {
+  suspend fun uploadWorkout(
+    workout: Workout,
+    points: List<MetricPoint>,
+    splits: List<WorkoutSplit>, // Added
+    user: User
+  ): Boolean {
     val token = getValidToken(user) ?: return false
 
-    val tcxString = TcxExporter(context).generateTcx(workout, points)
+    // Pass splits to TCX generator
+    val tcxString = TcxExporter(context).generateTcx(workout, points, splits)
     if (tcxString.isBlank()) return false
 
     val file = File(context.cacheDir, "upload_${workout.id}.tcx")

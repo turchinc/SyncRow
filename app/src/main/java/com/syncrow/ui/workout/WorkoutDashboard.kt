@@ -37,9 +37,15 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
   Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF001220)) {
     Box(modifier = Modifier.fillMaxSize()) {
       if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        LandscapeLayout(metrics, elapsedSeconds, sessionState, viewModel) { showSaveDialog = true }
+        LandscapeLayout(metrics, elapsedSeconds, sessionState, viewModel) {
+          viewModel.pauseWorkout() // Pause immediately on STOP
+          showSaveDialog = true
+        }
       } else {
-        PortraitLayout(metrics, elapsedSeconds, sessionState, viewModel) { showSaveDialog = true }
+        PortraitLayout(metrics, elapsedSeconds, sessionState, viewModel) {
+          viewModel.pauseWorkout() // Pause immediately on STOP
+          showSaveDialog = true
+        }
       }
 
       // Countdown Overlay
@@ -76,14 +82,27 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
         }
       },
       dismissButton = {
-        TextButton(
-          onClick = {
-            viewModel.finishWorkout(save = false)
-            showSaveDialog = false
-            onFinish()
+        Row {
+          // Resume Button
+          TextButton(
+            onClick = {
+              viewModel.startWorkout() // Resume timer
+              showSaveDialog = false
+            }
+          ) {
+            Text(stringResource(R.string.btn_resume))
           }
-        ) {
-          Text(stringResource(R.string.btn_discard), color = Color.Red)
+          Spacer(modifier = Modifier.width(8.dp))
+          // Discard Button
+          TextButton(
+            onClick = {
+              viewModel.finishWorkout(save = false)
+              showSaveDialog = false
+              onFinish()
+            }
+          ) {
+            Text(stringResource(R.string.btn_discard), color = Color.Red)
+          }
         }
       }
     )
@@ -250,6 +269,14 @@ fun SessionControls(sessionState: SessionState, viewModel: WorkoutViewModel, onS
       }
       SessionState.ROWING -> {
         Button(onClick = { viewModel.pauseWorkout() }) { Text(stringResource(R.string.btn_pause)) }
+        Spacer(modifier = Modifier.width(8.dp))
+        // NEW: Split Button
+        OutlinedButton(
+          onClick = { viewModel.markSplit() },
+          colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+        ) {
+          Text(stringResource(R.string.btn_split))
+        }
         Spacer(modifier = Modifier.width(8.dp))
         Button(onClick = onStop, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
           Text(stringResource(R.string.btn_stop))

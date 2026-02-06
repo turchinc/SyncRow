@@ -17,6 +17,7 @@
     <string name="btn_pause">PAUSE</string>
     <string name="btn_stop">STOP</string>
     <string name="btn_resume">RESUME</string>
+    <string name="btn_split">SPLIT</string>
 
     <string name="label_pace">500m PACE</string>
     <string name="label_power_watts">POWER (W)</string>

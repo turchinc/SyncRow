@@ -63,6 +63,7 @@ class WorkoutViewModel(
   private val userDao: UserDao,
   private val workoutDao: WorkoutDao,
   private val metricPointDao: MetricPointDao,
+  private val splitDao: SplitDao,
   private val stravaRepository: StravaRepository
 ) : AndroidViewModel(application) {
 
@@ -122,6 +123,12 @@ class WorkoutViewModel(
   private var scanJob: Job? = null
   private var scanTimeoutJob: Job? = null
   private var countdownJob: Job? = null
+
+  // Split tracking
+  private var lastSplitTime = 0
+  private var lastSplitDistance = 0
+  private var splitCount = 0
+  private var splitStartTimeMillis = 0L
 
   init {
     loadUser()
@@ -357,10 +364,14 @@ class WorkoutViewModel(
 
     viewModelScope.launch {
       if (_sessionState.value == SessionState.IDLE) {
-        currentWorkoutId =
-          workoutDao.insertWorkout(
-            Workout(userId = user.id, startTime = System.currentTimeMillis())
-          )
+        val now = System.currentTimeMillis()
+5        currentWorkoutId = workoutDao.insertWorkout(Workout(userId = user.id, startTime = now))
+        // Reset split counters
+        lastSplitTime = 0
+        lastSplitDistance = 0
+        splitCount = 0
+        splitStartTimeMillis = now
+
         startCountdown()
       } else if (_sessionState.value == SessionState.PAUSED) {
         // Resume immediately from pause, no countdown
@@ -368,6 +379,96 @@ class WorkoutViewModel(
         startTimer()
         startMetricsCollection()
       }
+    }
+  }
+
+  fun markSplit() {
+    // Also allow split in PAUSED state if we are finishing?
+    // Usually splits happen during rowing.
+    // But if we call this from finishWorkout, state might be PAUSED.
+    if (_sessionState.value != SessionState.ROWING && _sessionState.value != SessionState.PAUSED)
+      return
+
+    val workoutId = currentWorkoutId ?: return
+
+    splitCount++
+    val currentSeconds = _elapsedSeconds.value
+    val currentDist = _displayMetrics.value.distance
+    val now = System.currentTimeMillis()
+
+    val splitSeconds = currentSeconds - lastSplitTime
+    val splitDist = currentDist - lastSplitDistance
+
+    // Safety check for negative split distance
+    if (splitDist < 0) {
+      Log.w("WorkoutViewModel", "Negative split distance detected: $splitDist. Ignoring split.")
+      return
+    }
+
+    viewModelScope.launch {
+      recordSplitInternal(
+        workoutId,
+        splitCount,
+        splitStartTimeMillis,
+        now,
+        splitDist,
+        splitSeconds,
+        true
+      )
+    }
+
+    lastSplitTime = currentSeconds
+    lastSplitDistance = currentDist
+    splitStartTimeMillis = now
+  }
+
+  private suspend fun recordSplitInternal(
+    workoutId: Long,
+    index: Int,
+    start: Long,
+    end: Long,
+    dist: Int,
+    secs: Int,
+    showToast: Boolean
+  ) {
+    // Fetch average metrics for this split interval
+    val points = metricPointDao.getPointsInRange(workoutId, start, end)
+
+    val avgPace = if (points.isNotEmpty()) points.map { it.pace }.average().toInt() else 0
+    val avgPower = if (points.isNotEmpty()) points.map { it.power }.average().toInt() else 0
+    val avgHR =
+      if (points.isNotEmpty()) points.map { it.heartRate }.filter { it > 0 }.average().toInt()
+      else 0
+    val avgStroke = if (points.isNotEmpty()) points.map { it.strokeRate }.average().toInt() else 0
+
+    val split =
+      WorkoutSplit(
+        workoutId = workoutId,
+        splitIndex = index,
+        startTime = start,
+        endTime = end,
+        distanceMeters = dist,
+        durationSeconds = secs,
+        avgPace = avgPace,
+        avgPower = avgPower,
+        avgHeartRate = avgHR,
+        avgStrokeRate = avgStroke
+      )
+
+    splitDao.insertSplit(split)
+
+    if (showToast) {
+      // UI Feedback
+      val min = secs / 60
+      val sec = secs % 60
+      val timeStr = "%d:%02d".format(min, sec)
+
+      // Format pace
+      val paceMin = avgPace / 60
+      val paceSec = avgPace % 60
+      val paceStr = "%d:%02d".format(paceMin, paceSec)
+
+      _toastEvent.emit(ToastEvent.String("Split $index: $dist m in $timeStr ($paceStr/500m)"))
     }
   }
 
@@ -390,6 +491,9 @@ class WorkoutViewModel(
         startTimer()
         startMetricsCollection()
         startRecording()
+
+        // Reset start time for first split to match actual GO time
+        splitStartTimeMillis = System.currentTimeMillis()
       }
   }
 
@@ -405,6 +509,25 @@ class WorkoutViewModel(
 
       if (workoutId != null) {
         if (save) {
+          // AUTO-SPLIT: Record the final segment if there is remaining distance/time
+          val currentSeconds = _elapsedSeconds.value
+          val currentDist = _displayMetrics.value.distance
+          val splitSeconds = currentSeconds - lastSplitTime
+          val splitDist = currentDist - lastSplitDistance
+
+          if (splitSeconds > 0 || splitDist > 0) {
+            splitCount++
+            recordSplitInternal(
+              workoutId,
+              splitCount,
+              splitStartTimeMillis,
+              System.currentTimeMillis(),
+              if (splitDist >= 0) splitDist else 0, // Prevent negative
+              splitSeconds,
+              false // No toast for auto-split
+            )
+          }
+
           val workout = workoutDao.getWorkoutById(workoutId)
           if (workout != null) {
             val metrics = _displayMetrics.value
@@ -538,6 +661,10 @@ class WorkoutViewModel(
     return metricPointDao.getPointsForWorkout(workoutId)
   }
 
+  fun getSplitsForWorkout(workoutId: Long): Flow<List<WorkoutSplit>> {
+    return splitDao.getSplitsForWorkout(workoutId)
+  }
+
   fun completeStravaAuth(code: String) {
     val user = _currentUser.value ?: return
     viewModelScope.launch {
@@ -568,9 +695,12 @@ class WorkoutViewModel(
     viewModelScope.launch {
       val workout = workoutDao.getWorkoutById(workoutId) ?: return@launch
       val points = metricPointDao.getPointsForWorkout(workoutId).first()
+      // Fetch splits here if needed for Strava
+      val splits = splitDao.getSplitsForWorkoutSync(workoutId)
 
       _toastEvent.emit(ToastEvent.Resource(R.string.strava_syncing))
-      val success = stravaRepository.uploadWorkout(workout, points, user)
+      // TODO: Update uploadWorkout to accept splits
+      val success = stravaRepository.uploadWorkout(workout, points, splits, user)
       if (success) {
         _toastEvent.emit(ToastEvent.Resource(R.string.strava_sync_success))
       } else {
@@ -585,6 +715,7 @@ class WorkoutViewModel(
     private val userDao: UserDao,
     private val workoutDao: WorkoutDao,
     private val metricPointDao: MetricPointDao,
+    private val splitDao: SplitDao,
     private val stravaRepository: StravaRepository
   ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -595,6 +726,7 @@ class WorkoutViewModel(
         userDao,
         workoutDao,
         metricPointDao,
+        splitDao,
         stravaRepository
       )
         as T
