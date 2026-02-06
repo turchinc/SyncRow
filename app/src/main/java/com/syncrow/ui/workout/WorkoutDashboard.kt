@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syncrow.R
@@ -94,8 +95,8 @@ fun LandscapeLayout(metrics: RowerMetrics, elapsedSeconds: Int, sessionState: Se
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = formatTime(elapsedSeconds), color = Color.Yellow, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-            MetricDisplay(label = stringResource(R.string.label_pace), value = formatPace(metrics.pace), isPrimary = true)
+            Text(text = formatTime(elapsedSeconds), color = Color.Yellow, fontSize = 60.sp, fontWeight = FontWeight.Bold)
+            MetricDisplay(label = stringResource(R.string.label_pace), value = formatPace(metrics.pace), isPrimary = true, valueSize = 80.sp)
             SessionControls(sessionState, viewModel, onStop)
         }
 
@@ -105,12 +106,33 @@ fun LandscapeLayout(metrics: RowerMetrics, elapsedSeconds: Int, sessionState: Se
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                MetricDisplay(label = stringResource(R.string.label_power), value = metrics.power.toString())
-                MetricDisplay(label = stringResource(R.string.label_stroke), value = metrics.strokeRate.toString())
+                MetricDisplay(
+                    label = stringResource(R.string.label_power), 
+                    value = metrics.power.toString(), 
+                    valueSize = 56.sp,
+                    labelSize = 20.sp
+                )
+                MetricDisplay(
+                    label = stringResource(R.string.label_stroke), 
+                    value = metrics.strokeRate.toString(), 
+                    valueSize = 56.sp,
+                    labelSize = 20.sp
+                )
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                MetricDisplay(label = stringResource(R.string.label_dist), value = metrics.distance.toString())
-                MetricDisplay(label = stringResource(R.string.label_hr), value = if (metrics.heartRate > 0) metrics.heartRate.toString() else "--", color = Color.Red)
+                MetricDisplay(
+                    label = stringResource(R.string.label_dist), 
+                    value = metrics.distance.toString(), 
+                    valueSize = 56.sp,
+                    labelSize = 20.sp
+                )
+                MetricDisplay(
+                    label = stringResource(R.string.label_hr), 
+                    value = if (metrics.heartRate > 0) metrics.heartRate.toString() else "--", 
+                    color = Color.Red, 
+                    valueSize = 56.sp,
+                    labelSize = 20.sp
+                )
             }
         }
     }
@@ -142,7 +164,14 @@ fun SessionControls(sessionState: SessionState, viewModel: WorkoutViewModel, onS
 }
 
 @Composable
-fun MetricDisplay(label: String, value: String, isPrimary: Boolean = false, color: Color = Color.White) {
+fun MetricDisplay(
+    label: String, 
+    value: String, 
+    isPrimary: Boolean = false, 
+    color: Color = Color.White,
+    valueSize: TextUnit? = null,
+    labelSize: TextUnit? = null
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(4.dp)
@@ -150,13 +179,13 @@ fun MetricDisplay(label: String, value: String, isPrimary: Boolean = false, colo
         Text(
             text = label,
             color = Color.Gray,
-            fontSize = if (isPrimary) 14.sp else 12.sp,
+            fontSize = labelSize ?: if (isPrimary) 14.sp else 12.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = value,
             color = color,
-            fontSize = if (isPrimary) 60.sp else 30.sp,
+            fontSize = valueSize ?: if (isPrimary) 60.sp else 30.sp,
             fontWeight = FontWeight.Black
         )
     }

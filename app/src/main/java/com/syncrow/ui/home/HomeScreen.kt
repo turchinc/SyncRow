@@ -31,83 +31,100 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFF001220) // Deep Blue
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
         ) {
-            Text(
-                text = stringResource(R.string.app_name).uppercase(),
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Black,
-                color = Color.White
-            )
-            
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Button(
-                onClick = onStartWorkout,
-                modifier = Modifier.fillMaxWidth().height(64.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)) // Green
+            // Main Content Centered
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(stringResource(R.string.btn_just_row), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            }
+                Text(
+                    text = stringResource(R.string.app_name).uppercase(),
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // User info as a subtitle adds context to the session
+                Text(
+                    text = stringResource(R.string.label_current_user, currentUser?.name ?: stringResource(R.string.loading)),
+                    color = Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 48.dp)
+                )
 
-            OutlinedButton(
-                onClick = onNavigateToHistory,
-                modifier = Modifier.fillMaxWidth().height(64.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-            ) {
-                Text(stringResource(R.string.btn_history), fontSize = 18.sp)
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onStartWorkout,
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)) // Green
+                ) {
+                    Text(stringResource(R.string.btn_just_row), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedButton(
-                    onClick = onNavigateToDiscovery,
-                    modifier = Modifier.weight(1f).height(56.dp),
+                    onClick = onNavigateToHistory,
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                 ) {
-                    Text(stringResource(R.string.btn_hardware), fontSize = 14.sp)
+                    Text(stringResource(R.string.btn_history), fontSize = 18.sp)
                 }
                 
-                OutlinedButton(
-                    onClick = onNavigateToProfile,
-                    modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-                ) {
-                    Text(stringResource(R.string.btn_profile), fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedButton(
+                        onClick = onNavigateToDiscovery,
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) {
+                        Text(stringResource(R.string.btn_hardware), fontSize = 14.sp)
+                    }
+                    
+                    OutlinedButton(
+                        onClick = onNavigateToProfile,
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) {
+                        Text(stringResource(R.string.btn_profile), fontSize = 14.sp)
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(
-                onClick = onNavigateToAbout,
-                modifier = Modifier.fillMaxWidth()
+            // Footer for secondary actions
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.btn_about), color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp)
+                TextButton(onClick = onNavigateToAbout) {
+                    Text(
+                        stringResource(R.string.btn_about), 
+                        color = Color.Gray, 
+                        fontSize = 14.sp
+                    )
+                }
+                
+                Text(
+                    text = "•",
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+
+                TextButton(onClick = onQuit) {
+                    Text(
+                        stringResource(R.string.btn_quit), 
+                        color = Color.Gray, 
+                        fontSize = 14.sp
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(
-                onClick = onQuit,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.btn_quit), color = Color.Red.copy(alpha = 0.7f), fontSize = 16.sp)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = stringResource(R.string.label_current_user, currentUser?.name ?: stringResource(R.string.loading)),
-                color = Color.Gray,
-                fontSize = 14.sp
-            )
         }
     }
 }
