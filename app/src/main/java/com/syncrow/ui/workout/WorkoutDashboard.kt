@@ -1,6 +1,10 @@
 package com.syncrow.ui.workout
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Configuration
+import android.view.WindowManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -8,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
@@ -23,6 +28,9 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
     val sessionState by viewModel.sessionState.collectAsState()
     val configuration = LocalConfiguration.current
     var showSaveDialog by remember { mutableStateOf(false) }
+
+    // Keep screen on during workout
+    KeepScreenOn()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -56,6 +64,27 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
             }
         )
     }
+}
+
+@Composable
+fun KeepScreenOn() {
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val window = context.findActivity()?.window
+        window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onDispose {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+}
+
+private fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }
 
 @Composable

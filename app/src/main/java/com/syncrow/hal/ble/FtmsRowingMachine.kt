@@ -12,7 +12,6 @@ import kotlinx.coroutines.rx3.asFlow
 import java.util.UUID
 import io.reactivex.rxjava3.core.Observable
 import java.util.concurrent.TimeUnit
-import kotlin.math.pow
 
 class FtmsRowingMachine(
     private val rxBleClient: RxBleClient
@@ -23,7 +22,7 @@ class FtmsRowingMachine(
     private val CONTROL_POINT_CHAR_UUID = UUID.fromString("00002ad9-0000-1000-8000-00805f9b34fb")
 
     // State persistence
-    private var lastMetrics = RowerMetrics(0, 0, 0, 0)
+    private var lastMetrics = RowerMetrics(0, 0, 0, 0, 0)
 
     override fun getMetricsFlow(targetAddress: String?): Flow<RowerMetrics> {
         val scanFilter = ScanFilter.Builder()
@@ -73,63 +72,125 @@ class FtmsRowingMachine(
 
     /**
      * Parses Rowing Machine Data (0x2AD1) using the dynamic FTMS bit-flag specification.
-     * Verified against raw byte logs.
+     * Adjusted based on real-world feedback: Distance and Pace scaling removed.
      */
     private fun parseRowerData(bytes: ByteArray): RowerMetrics {
         if (bytes.size < 2) return lastMetrics
         
-        val flags = (bytes[0].toInt() and 0xFF) or ((bytes[1].toInt() and 0xFF) shl 8)
+        // b5 (Byte 0) - Primary Flags
+        val b5 = bytes[0].toInt() and 0xFF
+        // b6 (Byte 1) - Secondary Flags
+        val b6 = bytes[1].toInt() and 0xFF
+        
         var offset = 2
         
         var strokeRate = lastMetrics.strokeRate
         var distance = lastMetrics.distance
         var pace = lastMetrics.pace
         var power = lastMetrics.power
+        var heartRate = lastMetrics.heartRate
 
         try {
-            // Bit 0: More Data. If 0, Stroke Rate (UINT8) and Stroke Count (UINT16) are present.
-            if (flags and 0x01 == 0) {
+            // 1. Stroke Rate (UINT8) & Stroke Count (UINT16)
+            // Presence: When bit 0 of b5 is 0
+            if ((b5 and 0x01) == 0) {
                 if (bytes.size >= offset + 3) {
+                    // Value is stored as x2 (0.5 resolution)
                     strokeRate = (bytes[offset].toInt() and 0xFF) / 2
-                    // Skip Stroke Count (UINT16)
+                    // Skip Stroke Count (2 bytes)
                     offset += 3
                 }
             }
 
-            // Bit 1: Average Speed (UINT16)
-            if (flags and 0x02 != 0) offset += 2
+            // 2. Average Stroke Rate (UINT8)
+            // Presence: Bit 1 of b5
+            if ((b5 and 0x02) != 0) {
+                // Verified parser skips 1 byte.
+                offset += 1
+            }
 
-            // Bit 2: Total Distance (UINT24) - Crucial 3-byte field
-            if (flags and 0x04 != 0) {
+            // 3. Total Distance (UINT24)
+            // Presence: Bit 2 of b5
+            if ((b5 and 0x04) != 0) {
                 if (bytes.size >= offset + 3) {
-                    distance = (bytes[offset].toInt() and 0xFF) or 
-                               ((bytes[offset + 1].toInt() and 0xFF) shl 8) or 
-                               ((bytes[offset + 2].toInt() and 0xFF) shl 16)
+                    val rawDistance = (bytes[offset].toInt() and 0xFF) or 
+                                      ((bytes[offset + 1].toInt() and 0xFF) shl 8) or 
+                                      ((bytes[offset + 2].toInt() and 0xFF) shl 16)
+                    
+                    // REVERTED: Do not divide by 10. Assume raw Meters.
+                    distance = rawDistance
                     offset += 3
                 }
             }
 
-            // Bit 3: Instantaneous Pace (UINT16)
-            if (flags and 0x08 != 0) {
+            // 4. Instantaneous Pace (UINT16)
+            // Presence: Bit 3 of b5
+            if ((b5 and 0x08) != 0) {
                 if (bytes.size >= offset + 2) {
                     val rawPace = (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
+                    // REVERTED: Do not divide by 2. Assume raw Seconds.
                     pace = if (rawPace == 0xFFFF) 0 else rawPace
                     offset += 2
                 }
             }
 
-            // Bit 4: Average Pace (UINT16)
-            if (flags and 0x10 != 0) offset += 2
+            // 5. Average Pace (UINT16)
+            // Presence: Bit 4 of b5
+            if ((b5 and 0x10) != 0) {
+                offset += 2
+            }
 
-            // Bit 5: Instantaneous Power (SINT16)
-            if (flags and 0x20 != 0) {
+            // 6. Instantaneous Power (SINT16)
+            // Presence: Bit 5 of b5
+            if ((b5 and 0x20) != 0) {
                 if (bytes.size >= offset + 2) {
                     power = (bytes[offset].toInt() and 0xFF) or (bytes[offset + 1].toInt() shl 8)
                     offset += 2
                 }
             }
             
-            lastMetrics = RowerMetrics(power, pace, strokeRate, distance)
+            // 7. Average Power (SINT16)
+            // Presence: Bit 6 of b5
+            if ((b5 and 0x40) != 0) {
+                offset += 2
+            }
+            
+            // 8. Resistance Level (SINT16)
+            // Presence: Bit 7 of b5
+            if ((b5 and 0x80) != 0) {
+                offset += 2
+            }
+            
+            // --- Secondary Flags (b6) ---
+            
+            // 9. Energy Fields (Total(2) + PerHour(2) + PerMin(1) = 5 bytes)
+            // Presence: Bit 0 of b6
+            if ((b6 and 0x01) != 0) {
+                offset += 5
+            }
+            
+            // 10. Heart Rate (UINT8)
+            // Presence: Bit 1 of b6
+            if ((b6 and 0x02) != 0) {
+                 if (bytes.size >= offset + 1) {
+                     heartRate = bytes[offset].toInt() and 0xFF
+                     offset += 1
+                 }
+            }
+            
+            // 11. Elapsed Time (UINT16)
+            // Presence: Bit 3 of b6 (0x08)
+            if ((b6 and 0x08) != 0) {
+                offset += 2
+            }
+            
+            // 12. Remaining Time (UINT16)
+            // Presence: Bit 4 of b6 (0x10)
+            if ((b6 and 0x10) != 0) {
+                offset += 2
+            }
+            
+            lastMetrics = RowerMetrics(power, pace, strokeRate, distance, heartRate)
             
         } catch (e: Exception) {
             val hexString = bytes.joinToString("") { "%02X".format(it) }

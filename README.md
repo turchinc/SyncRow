@@ -1,3 +1,4 @@
+
 # SyncRow: Technical Specification & Modular Architecture
 
 ## 1. Project Vision
@@ -25,6 +26,11 @@ See [STATUS.md](./STATUS.md) for the detailed implementation checklist.
 - **Interval Workouts**: Implementation of the structured sessions defined in [Workouts.md](./Workouts.md).
 - **Target Tracking**: Visual indicators (Gauges) to help users stay within specific SPM or Watt ranges.
 - **Ghost Racing**: Ability to select a previous performance and race against it in real-time.
+- **Start sound and 3 second countdown**: when starting workout give rower 3 secs to push start and get adjusted
+- **Interval tones**: when interval changes, beep or whatever
+- **Audio tones for workouts**: add audio i.e. interval descriptor (from workout) or dynamic i.e 10 seconds remaining
+- **Startup sound**: the splash of an oar in the water - possibly video then solve with next
+- **Startup screen**: an oar in the water - see previous
 
 ## 5. Future Roadmap
 
