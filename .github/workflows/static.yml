@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          lfs: true  # This ensures the real images are downloaded, not just pointers
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact

@@ -69,6 +69,8 @@ This document provides a detailed checklist of the project's status, broken down
 - [x] **Project Homepage**
   - [x] Modern single-page landing at `web/public`.
   - [x] Optimized for Firebase Hosting.
+  - [x] Overhauled to be user-centric with screenshot carousel.
+  - [x] All locales (`fr`, `de`, `es`, `it`) synchronized with new design.
 
 ---
 
@@ -79,13 +81,20 @@ This document provides a detailed checklist of the project's status, broken down
   - [x] Secured Strava API secrets via environment variables.
   - [x] Updated versioning to 0.8.
   - [x] Aligned build configuration with BSL 1.1 license requirements.
-- [ ] **Training Module**
-  - [ ] Training editor for designing rowing intervals.
-  - [ ] Pre-defined training sessions (Foundation, SPM Ladder, The Pyramid, etc.).
-  - [ ] See `Workouts.md` for full technical definitions and goals.
-- [ ] **Real-time Coaching**
-  - [ ] Target gauges for SPM and Watts during intervals.
-  - [ ] Audible/Visual prompts for posture and intensity changes.
+- [x] **Training Module**
+  - [x] Full CRUD Training Plan Editor (Create, Edit, Copy, Delete).
+  - [x] Interval design using Blocks and Segments (Time/Distance).
+  - [x] Multi-target support (SPM, Watts, Pace, HR).
+  - [x] Seeded 5 pre-defined training sessions on first launch.
+  - [x] Added Sort & Filter options to plan list (including by duration).
+  - [x] Preferences for sorting and filtering are saved.
+  - [x] Fully localized UI in all supported languages.
+- [x] **Real-time Coaching**
+  - [x] New "Do Workout" dashboard for executing training plans.
+  - [x] Visual indicators for current and upcoming segment targets.
+  - [x] Segment countdown timers (Time/Distance) and overall progress.
+  - [x] Audible cues (beeps and TTS) for countdowns and segment changes.
+  - [x] Automatic split generation for each completed segment.
 - [ ] **Advanced Analysis**
   - [ ] Personal Bests tracking (`personal_bests` table).
   - [ ] Row against "ghosts" from workout history.
