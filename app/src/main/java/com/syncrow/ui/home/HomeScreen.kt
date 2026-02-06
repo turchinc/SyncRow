@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syncrow.R
@@ -84,7 +85,8 @@ fun HomeScreen(
             Text(
               stringResource(R.string.btn_history),
               fontSize = 16.sp,
-              fontWeight = FontWeight.SemiBold
+              fontWeight = FontWeight.SemiBold,
+              textAlign = TextAlign.Center
             )
           }
 
@@ -96,7 +98,8 @@ fun HomeScreen(
             Text(
               stringResource(R.string.btn_training),
               fontSize = 16.sp,
-              fontWeight = FontWeight.SemiBold
+              fontWeight = FontWeight.SemiBold,
+              textAlign = TextAlign.Center
             )
           }
         }
@@ -112,7 +115,11 @@ fun HomeScreen(
             modifier = Modifier.weight(1f).height(56.dp),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
           ) {
-            Text(stringResource(R.string.btn_hardware), fontSize = 14.sp)
+            Text(
+              stringResource(R.string.btn_hardware),
+              fontSize = 14.sp,
+              textAlign = TextAlign.Center
+            )
           }
 
           OutlinedButton(
@@ -120,7 +127,11 @@ fun HomeScreen(
             modifier = Modifier.weight(1f).height(56.dp),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
           ) {
-            Text(stringResource(R.string.btn_profile), fontSize = 14.sp)
+            Text(
+              stringResource(R.string.btn_profile),
+              fontSize = 14.sp,
+              textAlign = TextAlign.Center
+            )
           }
         }
       }

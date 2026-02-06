@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SyncRow</string>
     <string name="btn_just_row">JUST ROW</string>
-    <string name="btn_history">WORKOUT HISTORY</string>
+    <string name="btn_history">TRAINING LOG</string>
     <string name="btn_training">TRAINING</string>
     <string name="btn_hardware">HARDWARE</string>
     <string name="btn_profile">PROFILE</string>
@@ -100,7 +100,7 @@
 
     <!-- About Screen -->
     <string name="title_about">About SyncRow</string>
-    <string name="about_description">SyncRow is a lightweight, open-source Android rowing app designed to bridge the gap between indoor rowing hardware and modern fitness platforms like Strava. No subscriptions, no ads, just data.</string>
+    <string name="about_description">SyncRow is a powerful, source-available Android rowing app designed to bridge the gap between indoor rowing hardware and modern fitness platforms like Strava. No subscriptions, no ads, just data.</string>
     <string name="btn_visit_homepage">VISIT HOMEPAGE</string>
     <string name="btn_visit_github">VIEW ON GITHUB</string>
     <string name="label_version">Version %1$s</string>

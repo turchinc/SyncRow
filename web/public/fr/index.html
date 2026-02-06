@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncRow | Application de rameur gratuite pour Strava</title>
-    <meta name="description" content="SyncRow est une application de rameur Android gratuite qui synchronise tes entraînements avec Strava en tant que Virtual Row. Aucun abonnement requis. Testé sur Pixel 7 et Skandika Styrke II.">
+    <title>SyncRow | Application Rameur Gratuite avec Workouts Personnalisés pour Strava</title>
+    <meta name="description" content="SyncRow est une application de rameur Android gratuite qui synchronise les entraînements avec Strava. Crée des plans d'entraînement personnalisés, suis des séances guidées et synchronise tout gratuitement.">
     <link rel="alternate" hreflang="en" href="https://syncrow.ing/" />
     <link rel="alternate" hreflang="fr" href="https://syncrow.ing/fr/" />
     <link rel="alternate" hreflang="de" href="https://syncrow.ing/de/" />
@@ -18,6 +18,13 @@
             background: linear-gradient(90deg, #3b82f6, #2563eb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+        .carousel-container {
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+        }
+        .carousel-item {
+            scroll-snap-align: center;
         }
     </style>
 </head>
@@ -47,93 +54,113 @@
     </nav>
 
     <!-- Section Héros -->
-    <header class="container mx-auto px-6 pt-16 pb-24 text-center md:text-left flex flex-col md:flex-row items-center">
-        <div class="md:w-1/2">
-            <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
-                Ton aviron, <br><span class="gradient-text">Synchronisé.</span>
-            </h1>
-            <p class="text-xl text-slate-600 mb-10 max-w-lg">
-                Une application légère pour Android conçue pour l'écosystème Android et testée sur Pixel 7.
-                Découvre la télémétrie en temps réel, une <strong>intégration Strava fluide</strong>, et le support multi-utilisateur sur un seul appareil.
-            </p>
-            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <a href="https://github.com/turchinc/syncrow" class="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-center flex items-center justify-center space-x-2">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.61-4.041-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    <span>Voir sur GitHub</span>
-                </a>
-                <a href="#features" class="bg-white border border-slate-200 text-slate-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-50 transition text-center">
-                    En savoir plus
-                </a>
-            </div>
-        </div>
-        <div class="md:w-1/2 mt-16 md:mt-0 flex justify-center">
-            <div class="relative w-64 h-[500px] bg-slate-900 rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden">
-                <div class="absolute top-0 w-full h-6 bg-slate-800 flex justify-center items-center">
-                    <div class="w-12 h-1 bg-slate-700 rounded-full"></div>
-                </div>
-                <div class="p-4 pt-10 text-white space-y-4">
-                    <div class="h-32 rounded-xl bg-blue-600 p-4">
-                        <p class="text-xs opacity-80 uppercase">ALLURE 500m</p>
-                        <p class="text-3xl font-bold">1:52.4</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="h-24 rounded-xl bg-slate-800 p-3">
-                            <p class="text-[10px] opacity-60 uppercase">Puissance</p>
-                            <p class="text-xl font-bold">245W</p>
-                        </div>
-                        <div class="h-24 rounded-xl bg-slate-800 p-3">
-                            <p class="text-[10px] uppercase">Cadence</p>
-                            <p class="text-xl font-bold">28</p>
-                        </div>
-                    </div>
-                    <div class="h-40 rounded-xl border border-slate-700 flex flex-col justify-end p-4">
-                         <div class="flex items-end space-x-1 h-20">
-                            <div class="w-full bg-blue-500 h-1/2 rounded-t-sm"></div>
-                            <div class="w-full bg-blue-500 h-2/3 rounded-t-sm"></div>
-                            <div class="w-full bg-blue-500 h-3/4 rounded-t-sm"></div>
-                            <div class="w-full bg-blue-500 h-full rounded-t-sm"></div>
-                            <div class="w-full bg-blue-500 h-4/5 rounded-t-sm"></div>
-                            <div class="w-full bg-blue-500 h-2/3 rounded-t-sm"></div>
-                         </div>
-                         <p class="text-[10px] opacity-60 mt-2 uppercase text-blue-400 font-bold tracking-widest">FC : 142 BPM</p>
-                    </div>
-                </div>
-            </div>
+    <header class="container mx-auto px-6 pt-16 pb-24 text-center">
+        <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
+            Votre Aviron, <br><span class="gradient-text">Synchronisé.</span>
+        </h1>
+        <p class="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
+            Une application de rameur virtuelle puissante pour les machines FTMS. Profitez de la télémétrie en temps réel avec notre populaire fonction <strong>ramer librement</strong>, ou tirez parti de nos <strong>plans d'entraînement structurés</strong>. L'application a été conçue dès le départ pour inclure une intégration transparente avec Strava et un support multi-utilisateurs, lorsque vous partagez une tablette pour contrôler votre rameur virtuel.
+        </p>
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+            <a href="https://github.com/turchinc/syncrow" class="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-center flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.61-4.041-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                <span>Voir sur GitHub</span>
+            </a>
+            <a href="#features" class="bg-white border border-slate-200 text-slate-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-50 transition text-center">
+                En savoir plus
+            </a>
         </div>
     </header>
+
+    <!-- Screenshot Carousel Section -->
+    <section id="gallery" class="py-16">
+        <div class="container mx-auto px-6">
+            <div class="relative" x-data="{
+                skip: 1,
+                atBeginning: true,
+                atEnd: false,
+                next() { this.to((this.skip < 8) ? this.skip + 1 : 1) },
+                prev() { this.to((this.skip > 1) ? this.skip - 1 : 8) },
+                to(idx) {
+                    this.skip = idx
+                    const container = this.$refs.container
+                    container.scrollTo({ left: (this.skip - 1) * container.clientWidth, behavior: 'smooth' })
+                },
+                updateArrowStates() {
+                    const container = this.$refs.container
+                    this.atBeginning = container.scrollLeft === 0
+                    this.atEnd = Math.abs(container.scrollWidth - container.clientWidth - container.scrollLeft) < 1
+                }
+            }">
+                <div class="carousel-container flex overflow-x-auto snap-x snap-mandatory" x-ref="container" @scroll="updateArrowStates()">
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/01_home.png" alt="Écran d'accueil" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/02_just_row.png" alt="Écran Ramer librement" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/03_save.png" alt="Dialogue de sauvegarde" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/04_plan.png" alt="Liste des plans d'entraînement" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/05_editor.png" alt="Éditeur de plan d'entraînement" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/06_workout.png" alt="Écran d'entraînement guidé" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/07_profile.png" alt="Écran de profil" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                    <div class="carousel-item w-full flex-shrink-0 snap-center flex justify-center p-4">
+                        <img src="../screenshots/08_about.png" alt="Écran À propos" class="max-h-[70vh] rounded-2xl shadow-lg">
+                    </div>
+                </div>
+
+                <button @click="prev()" :class="{ 'opacity-50 cursor-not-allowed': atBeginning }" class="absolute top-1/2 left-4 -translate-y-1/2 bg-white/50 p-2 rounded-full backdrop-blur-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <button @click="next()" :class="{ 'opacity-50 cursor-not-allowed': atEnd }" class="absolute top-1/2 right-4 -translate-y-1/2 bg-white/50 p-2 rounded-full backdrop-blur-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+    </section>
 
     <!-- Section Fonctionnalités -->
     <section id="features" class="bg-white py-24">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-extrabold mb-4">Conçu pour les rameurs qui ne veulent pas d'un autre abonnement,</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto italic">mais qui VEULENT synchroniser leurs entraînements avec Strava. Optimisé pour Skandika Styrke II et le matériel compatible FTMS. Testé sur Pixel 7 et HOTWAV Note 13 Max. </p>
+                <h2 class="text-4xl font-extrabold mb-4">Arrête de ramer sans but. Commence à t'entraîner.</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto italic">SyncRow inclut désormais un système d'entraînement puissant et gratuit pour guider tes séances et suivre tes progrès.</p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-12">
                 <!-- Fonctionnalité 1 -->
                 <div class="space-y-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold">Analyseur FTMS dynamique pour les appareils BLE</h3>
-                    <p class="text-slate-600">Décodage robuste pour les rameurs Bluetooth standards. Gère tous les champs courants envoyés par mon rameur Skandika ;-).</p>
+                    <h3 class="text-xl font-bold">Bibliothèque de séances guidées</h3>
+                    <p class="text-slate-600">Commence à t'entraîner immédiatement avec une bibliothèque de séances pré-conçues. Des sessions d'endurance pour débutants aux simulations de course de 2K avancées, il y a un plan pour chaque niveau.</p>
                 </div>
                 <!-- Fonctionnalité 2 -->
                 <div class="space-y-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold">Profils Multi-Utilisateurs</h3>
-                    <p class="text-slate-600">Données de profil enregistrées, y compris le poids, l'âge et les préférences linguistiques. Se connecte automatiquement à ton matériel préféré.</p>
+                    <h3 class="text-xl font-bold">Éditeur de plans puissant</h3>
+                    <p class="text-slate-600">Crée tes propres séances de rameur personnalisées avec notre éditeur intuitif. Crée des sessions d'intervalles complexes, fixe des objectifs de temps ou de distance, et définis plusieurs cibles comme la cadence, la puissance ou l'allure.</p>
                 </div>
                 <!-- Fonctionnalité 3 -->
                 <div class="space-y-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold">Synchronisation Cloud Strava</h3>
-                    <p class="text-slate-600">Télécharge directement tes séances sur Strava en tant que <strong>Virtual Row</strong>. Pas besoin d'exports manuels, bien que le TCX soit disponible.</p>
+                    <h3 class="text-xl font-bold">Concentre-toi sur ton entraînement</h3>
+                    <p class="text-slate-600">Notre nouveau tableau de bord d'entraînement te guide à travers chaque segment. Vois tes objectifs actuels, un compte à rebours pour l'intervalle actif et un aperçu de ce qui suit, le tout sur un seul écran.</p>
                 </div>
             </div>
         </div>
@@ -151,14 +178,14 @@
             <div class="inline-flex items-center space-x-2 text-blue-600 font-bold">
                 <span>Gratuit à vie</span>
                 <span>•</span>
-                <a href="https://github.com/turchinc/syncrow/blob/main/LICENSE" class="hover:underline">Code accessible</a>
+                <a href="https://github.com/turchinc/syncrow/blob/main/LICENSE" class="hover:underline">Code source disponible</a>
                 <span>•</span>
                 <span>Sans publicité</span>
             </div>
         </div>
     </section>
 
-    <!-- Pied de page -->
+    <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 py-12">
         <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
             <div class="mb-8 md:mb-0">
@@ -180,5 +207,6 @@
             &copy; 2026 SyncRow. Tous droits réservés.
         </div>
     </footer>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
 </body>
 </html>
