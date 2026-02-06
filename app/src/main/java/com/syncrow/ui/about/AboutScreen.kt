@@ -26,91 +26,87 @@ import com.syncrow.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
-    val homepageUrl = "https://syncrow.ing"
-    val githubUrl = "https://github.com/turchinc/syncrow"
+  val context = LocalContext.current
+  val homepageUrl = "https://syncrow.ing"
+  val githubUrl = "https://github.com/turchinc/syncrow"
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.title_about)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
-                    }
-                }
-            )
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = { Text(stringResource(R.string.title_about)) },
+        navigationIcon = {
+          IconButton(onClick = onBack) {
+            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+          }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = "SyncRow Logo",
-                modifier = Modifier.size(120.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = stringResource(R.string.app_name),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
-            )
-            
-            Text(
-                text = stringResource(R.string.label_version, BuildConfig.VERSION_NAME),
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            Text(
-                text = stringResource(R.string.about_description),
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                lineHeight = 24.sp
-            )
-            
-            Spacer(modifier = Modifier.height(48.dp))
-            
-            Button(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(homepageUrl))
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.btn_visit_homepage))
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            OutlinedButton(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.btn_visit_github))
-            }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            Text(
-                text = "© 2026 SyncRow contributors",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
-        }
+      )
     }
+  ) { padding ->
+    Column(
+      modifier =
+        Modifier.fillMaxSize()
+          .padding(padding)
+          .padding(24.dp)
+          .verticalScroll(rememberScrollState()),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      Image(
+        painter = painterResource(id = R.drawable.logo),
+        contentDescription = "SyncRow Logo",
+        modifier = Modifier.size(120.dp)
+      )
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      Text(
+        text = stringResource(R.string.app_name),
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Black,
+        color = MaterialTheme.colorScheme.primary
+      )
+
+      Text(
+        text = stringResource(R.string.label_version, BuildConfig.VERSION_NAME),
+        fontSize = 14.sp,
+        color = Color.Gray
+      )
+
+      Spacer(modifier = Modifier.height(32.dp))
+
+      Text(
+        text = stringResource(R.string.about_description),
+        fontSize = 16.sp,
+        textAlign = TextAlign.Center,
+        lineHeight = 24.sp
+      )
+
+      Spacer(modifier = Modifier.height(48.dp))
+
+      Button(
+        onClick = {
+          val intent = Intent(Intent.ACTION_VIEW, Uri.parse(homepageUrl))
+          context.startActivity(intent)
+        },
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Text(stringResource(R.string.btn_visit_homepage))
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      OutlinedButton(
+        onClick = {
+          val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
+          context.startActivity(intent)
+        },
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Text(stringResource(R.string.btn_visit_github))
+      }
+
+      Spacer(modifier = Modifier.height(32.dp))
+
+      Text(text = "© 2026 SyncRow contributors", fontSize = 12.sp, color = Color.Gray)
+    }
+  }
 }

@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+    id("com.diffplug.spotless")
 }
 
 val localProperties = Properties()
@@ -16,6 +17,18 @@ if (localPropertiesFile.exists()) {
 val copyLicenseTask = tasks.register<Copy>("copyLicense") {
     from(rootProject.file("LICENSE"))
     into(layout.buildDirectory.dir("generated/assets/license"))
+}
+
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        ktfmt().googleStyle() // Use Google's standard Kotlin format
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+tasks.named("preBuild") {
+    dependsOn("spotlessApply")
 }
 
 android {

@@ -11,37 +11,33 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class SyncRowApplication : Application() {
-    lateinit var rxBleClient: RxBleClient
-        private set
-    
-    lateinit var database: SyncRowDatabase
-        private set
+  lateinit var rxBleClient: RxBleClient
+    private set
 
-    lateinit var stravaRepository: StravaRepository
-        private set
+  lateinit var database: SyncRowDatabase
+    private set
 
-    override fun onCreate() {
-        super.onCreate()
-        
-        // Handle RxJava undeliverable exceptions to prevent crashes on BLE disconnects
-        RxJavaPlugins.setErrorHandler { throwable ->
-            Log.w("SyncRowApp", "Undeliverable exception received: ${throwable.message}")
-        }
+  lateinit var stravaRepository: StravaRepository
+    private set
 
-        rxBleClient = RxBleClient.create(this)
-        database = SyncRowDatabase.getDatabase(this)
+  override fun onCreate() {
+    super.onCreate()
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://www.strava.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        val stravaApi = retrofit.create(StravaApi::class.java)
-        
-        stravaRepository = StravaRepository(
-            this,
-            stravaApi,
-            database.userDao(),
-            database.workoutDao()
-        )
+    // Handle RxJava undeliverable exceptions to prevent crashes on BLE disconnects
+    RxJavaPlugins.setErrorHandler { throwable ->
+      Log.w("SyncRowApp", "Undeliverable exception received: ${throwable.message}")
     }
+
+    rxBleClient = RxBleClient.create(this)
+    database = SyncRowDatabase.getDatabase(this)
+
+    val retrofit =
+      Retrofit.Builder()
+        .baseUrl("https://www.strava.com/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    val stravaApi = retrofit.create(StravaApi::class.java)
+
+    stravaRepository = StravaRepository(this, stravaApi, database.userDao(), database.workoutDao())
+  }
 }

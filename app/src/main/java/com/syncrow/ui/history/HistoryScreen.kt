@@ -25,137 +25,161 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistoryScreen(viewModel: WorkoutViewModel, onBack: () -> Unit, onNavigateToDetail: (Long) -> Unit) {
-    val workouts by viewModel.getWorkoutsForCurrentUser().collectAsState(initial = emptyList())
-    var selectedWorkouts by remember { mutableStateOf(setOf<Long>()) }
-    val isSelectionMode = selectedWorkouts.isNotEmpty()
+fun HistoryScreen(
+  viewModel: WorkoutViewModel,
+  onBack: () -> Unit,
+  onNavigateToDetail: (Long) -> Unit
+) {
+  val workouts by viewModel.getWorkoutsForCurrentUser().collectAsState(initial = emptyList())
+  var selectedWorkouts by remember { mutableStateOf(setOf<Long>()) }
+  val isSelectionMode = selectedWorkouts.isNotEmpty()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    if (isSelectionMode) {
-                        Text(stringResource(R.string.selection_count, selectedWorkouts.size))
-                    } else {
-                        Text(stringResource(R.string.btn_history))
-                    }
-                },
-                navigationIcon = {
-                    if (isSelectionMode) {
-                        IconButton(onClick = { selectedWorkouts = emptySet() }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_cancel_selection))
-                        }
-                    } else {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
-                        }
-                    }
-                },
-                actions = {
-                    if (isSelectionMode) {
-                        IconButton(onClick = {
-                            viewModel.deleteWorkouts(selectedWorkouts.toList())
-                            selectedWorkouts = emptySet()
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete_selected))
-                        }
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
-            if (workouts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.label_no_workouts), color = Color.Gray)
-                }
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(workouts) { workout ->
-                        WorkoutHistoryItem(
-                            workout = workout,
-                            isSelected = selectedWorkouts.contains(workout.id),
-                            onToggleSelection = {
-                                selectedWorkouts = if (selectedWorkouts.contains(workout.id)) {
-                                    selectedWorkouts - workout.id
-                                } else {
-                                    selectedWorkouts + workout.id
-                                }
-                            },
-                            onNavigate = {
-                                if (isSelectionMode) {
-                                    selectedWorkouts = if (selectedWorkouts.contains(workout.id)) {
-                                        selectedWorkouts - workout.id
-                                    } else {
-                                        selectedWorkouts + workout.id
-                                    }
-                                } else {
-                                    onNavigateToDetail(workout.id)
-                                }
-                            }
-                        )
-                    }
-                }
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = {
+          if (isSelectionMode) {
+            Text(stringResource(R.string.selection_count, selectedWorkouts.size))
+          } else {
+            Text(stringResource(R.string.btn_history))
+          }
+        },
+        navigationIcon = {
+          if (isSelectionMode) {
+            IconButton(onClick = { selectedWorkouts = emptySet() }) {
+              Icon(
+                Icons.Default.Close,
+                contentDescription = stringResource(R.string.cd_cancel_selection)
+              )
             }
+          } else {
+            IconButton(onClick = onBack) {
+              Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+            }
+          }
+        },
+        actions = {
+          if (isSelectionMode) {
+            IconButton(
+              onClick = {
+                viewModel.deleteWorkouts(selectedWorkouts.toList())
+                selectedWorkouts = emptySet()
+              }
+            ) {
+              Icon(
+                Icons.Default.Delete,
+                contentDescription = stringResource(R.string.cd_delete_selected)
+              )
+            }
+          }
         }
+      )
     }
+  ) { padding ->
+    Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+      if (workouts.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          Text(stringResource(R.string.label_no_workouts), color = Color.Gray)
+        }
+      } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+          items(workouts) { workout ->
+            WorkoutHistoryItem(
+              workout = workout,
+              isSelected = selectedWorkouts.contains(workout.id),
+              onToggleSelection = {
+                selectedWorkouts =
+                  if (selectedWorkouts.contains(workout.id)) {
+                    selectedWorkouts - workout.id
+                  } else {
+                    selectedWorkouts + workout.id
+                  }
+              },
+              onNavigate = {
+                if (isSelectionMode) {
+                  selectedWorkouts =
+                    if (selectedWorkouts.contains(workout.id)) {
+                      selectedWorkouts - workout.id
+                    } else {
+                      selectedWorkouts + workout.id
+                    }
+                } else {
+                  onNavigateToDetail(workout.id)
+                }
+              }
+            )
+          }
+        }
+      }
+    }
+  }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutHistoryItem(
-    workout: Workout,
-    isSelected: Boolean,
-    onToggleSelection: () -> Unit,
-    onNavigate: () -> Unit
+  workout: Workout,
+  isSelected: Boolean,
+  onToggleSelection: () -> Unit,
+  onNavigate: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-    val dateString = dateFormat.format(Date(workout.startTime))
+  val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+  val dateString = dateFormat.format(Date(workout.startTime))
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .combinedClickable(
-                onClick = onNavigate,
-                onLongClick = onToggleSelection
-            ),
-        colors = if (isSelected) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        } else {
-            CardDefaults.cardColors()
+  Card(
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(vertical = 4.dp)
+        .combinedClickable(onClick = onNavigate, onLongClick = onToggleSelection),
+    colors =
+      if (isSelected) {
+        CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+      } else {
+        CardDefaults.cardColors()
+      }
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text(text = dateString, style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          if (workout.stravaActivityId != null) {
+            Icon(
+              Icons.Default.Sync,
+              contentDescription = stringResource(R.string.label_strava_synced),
+              tint = Color(0xFFFC4C02),
+              modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+          }
+          if (isSelected) {
+            Icon(
+              Icons.Default.Delete,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary
+            )
+          }
         }
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(text = dateString, style = MaterialTheme.typography.titleMedium)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (workout.stravaActivityId != null) {
-                        Icon(
-                            Icons.Default.Sync, 
-                            contentDescription = stringResource(R.string.label_strava_synced), 
-                            tint = Color(0xFFFC4C02),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                    if (isSelected) {
-                        Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "${workout.totalDistanceMeters}m", style = MaterialTheme.typography.bodyLarge)
-                Text(text = formatTime(workout.totalSeconds), style = MaterialTheme.typography.bodyLarge)
-                Text(text = stringResource(R.string.label_avg_power_format, workout.avgPower), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-            }
-        }
+      }
+      Spacer(modifier = Modifier.height(8.dp))
+      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(text = "${workout.totalDistanceMeters}m", style = MaterialTheme.typography.bodyLarge)
+        Text(text = formatTime(workout.totalSeconds), style = MaterialTheme.typography.bodyLarge)
+        Text(
+          text = stringResource(R.string.label_avg_power_format, workout.avgPower),
+          style = MaterialTheme.typography.bodyMedium,
+          color = Color.Gray
+        )
+      }
     }
+  }
 }
 
 private fun formatTime(totalSeconds: Int): String {
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%02d:%02d".format(minutes, seconds)
+  val minutes = totalSeconds / 60
+  val seconds = totalSeconds % 60
+  return "%02d:%02d".format(minutes, seconds)
 }
