@@ -2,6 +2,7 @@
     <string name="app_name">SyncRow</string>
     <string name="btn_just_row">RUDERN</string>
     <string name="btn_history">TRAININGSVERLAUF</string>
+    <string name="btn_training">TRAINING</string>
     <string name="btn_hardware">HARDWARE</string>
     <string name="btn_profile">PROFIL</string>
     <string name="btn_quit">APP BEENDEN</string>

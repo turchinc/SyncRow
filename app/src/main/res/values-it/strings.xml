@@ -2,29 +2,31 @@
     <string name="app_name">SyncRow</string>
     <string name="btn_just_row">VOGA</string>
     <string name="btn_history">CRONOLOGIA</string>
+    <string name="btn_training">ALLENAMENTO</string>
     <string name="btn_hardware">HARDWARE</string>
     <string name="btn_profile">PROFILO</string>
-    <string name="btn_quit">ESCI DALL\'APP</string>
+    <string name="btn_quit">ESCI</string>
     <string name="btn_about">INFO</string>
     <string name="label_current_user">Utente attuale: %1$s</string>
     <string name="loading">Caricamento...</string>
 
     <string name="dialog_end_workout_title">Termina allenamento</string>
-    <string name="dialog_end_workout_message">Vuoi salvare questa sessione nella tua cronologia?</string>
+    <string name="dialog_end_workout_message">Vuoi salvare questa sessione nella cronologia?</string>
     <string name="btn_save">SALVA</string>
     <string name="btn_discard">SCARTA</string>
-    <string name="btn_start">INIZIA</string>
+    <string name="btn_start">AVVIA</string>
     <string name="btn_pause">PAUSA</string>
     <string name="btn_stop">STOP</string>
     <string name="btn_resume">RIPRENDI</string>
+    <string name="btn_split">GIRO</string>
 
-    <string name="label_pace">RITMO 500m</string>
+    <string name="label_pace">PASSO 500m</string>
     <string name="label_power_watts">POTENZA (W)</string>
-    <string name="label_stroke_rate">FREQUENZA PALATE</string>
+    <string name="label_stroke_rate">COLPI</string>
     <string name="label_distance_meters">DISTANZA (M)</string>
     <string name="label_heart_rate">FREQUENZA CARDIACA</string>
     <string name="label_power">POTENZA</string>
-    <string name="label_stroke">PALATA</string>
+    <string name="label_stroke">COLPI</string>
     <string name="label_dist">DIST</string>
     <string name="label_hr">FC</string>
 
@@ -33,48 +35,48 @@
     <string name="cd_back">Indietro</string>
     <string name="cd_delete_selected">Elimina selezionati</string>
     <string name="label_no_workouts">Nessun allenamento registrato. Inizia a vogare!</string>
-    <string name="label_avg_power_format">%1$dW medi</string>
+    <string name="label_avg_power_format">%1$dW medio</string>
 
-    <string name="title_hardware_setup">Configurazione Hardware</string>
-    <string name="btn_rescan">RESCAN</string>
-    <string name="discovery_description">Seleziona il tuo vogatore e il tuo cardiofrequenzimetro. Ciò garantisce che l\'app utilizzi il corretto parser di dati.</string>
-    <string name="discovery_no_devices">Nessun hardware compatibile trovato. Tira la maniglia del vogatore e assicurati che il cardiofrequenzimetro sia acceso.</string>
+    <string name="title_hardware_setup">Configurazione hardware</string>
+    <string name="btn_rescan">RITENTA</string>
+    <string name="discovery_description">Seleziona il tuo vogatore e il cardiofrequenzimetro. Questo assicura che l\'app utilizzi il parser dati corretto.</string>
+    <string name="discovery_no_devices">Nessun hardware compatibile trovato. Tira la maniglia del vogatore e assicurati che il monitor FC sia acceso.</string>
     <string name="cd_selected">Selezionato</string>
 
-    <string name="title_user_profiles">Profili Utente</string>
-    <string name="cd_add_profile">Aggiungi Profilo</string>
-    <string name="label_active_profile">Profilo Attivo</string>
-    <string name="cd_edit_profile">Modifica Profilo</string>
-    <string name="label_strava_connected">Collegato a Strava</string>
+    <string name="title_user_profiles">Profili utente</string>
+    <string name="cd_add_profile">Aggiungi profilo</string>
+    <string name="label_active_profile">Profilo attivo</string>
+    <string name="cd_edit_profile">Modifica profilo</string>
+    <string name="label_strava_connected">Connesso a Strava</string>
     <string name="label_strava_synced">Sincronizzato con Strava</string>
-    <string name="label_switch_profile">Cambia Profilo</string>
+    <string name="label_switch_profile">Cambia profilo</string>
     <string name="label_years_format">%1$d anni</string>
-    <string name="title_new_profile">Nuovo Profilo</string>
+    <string name="title_new_profile">Nuovo profilo</string>
     <string name="label_name">Nome</string>
     <string name="btn_create">Crea</string>
     <string name="btn_cancel">Annulla</string>
     <string name="label_age">Età</string>
     <string name="label_weight_kg">Peso (kg)</string>
     <string name="label_height_cm">Altezza (cm)</string>
-    <string name="label_gender">Sesso</string>
+    <string name="label_gender">Genere</string>
     <string name="gender_male">Maschio</string>
     <string name="gender_female">Femmina</string>
     <string name="gender_other">Altro</string>
-    <string name="btn_connect_strava">COLLEGA STRAVA</string>
-    <string name="btn_disconnect_strava">SCOLLEGA STRAVA</string>
-    <string name="btn_sync_strava">SINCRONIZZA SU STRAVA</string>
-    <string name="strava_connected_success">Collegato con successo a Strava!</string>
-    <string name="strava_disconnected_success">Strava scollegato.</string>
-    <string name="strava_connection_error">Impossibile collegarsi a Strava.</string>
+    <string name="btn_connect_strava">CONNETTI STRAVA</string>
+    <string name="btn_disconnect_strava">DISCONNETTI STRAVA</string>
+    <string name="btn_sync_strava">SINCRONIZZA CON STRAVA</string>
+    <string name="strava_connected_success">Connesso a Strava con successo!</string>
+    <string name="strava_disconnected_success">Strava disconnesso.</string>
+    <string name="strava_connection_error">Connessione a Strava fallita.</string>
     <string name="strava_syncing">Sincronizzazione con Strava...</string>
-    <string name="strava_sync_success">Allenamento sincronizzato su Strava!</string>
-    <string name="strava_sync_error">Errore durante la sincronizzazione su Strava.</string>
-    <string name="error_strava_credentials_missing">Credenziali Strava non configurate in local.properties</string>
+    <string name="strava_sync_success">Allenamento sincronizzato con Strava!</string>
+    <string name="strava_sync_error">Sincronizzazione con Strava fallita.</string>
+    <string name="error_strava_credentials_missing">ID Client Strava non configurato in local.properties</string>
 
-    <string name="dialog_delete_workout_title">Elimina Allenamento</string>
+    <string name="dialog_delete_workout_title">Elimina allenamento</string>
     <string name="dialog_delete_workout_message">Sei sicuro di voler eliminare questo allenamento? Questa azione non può essere annullata.</string>
     <string name="btn_delete">Elimina</string>
-    <string name="title_workout_summary">Riepilogo Allenamento</string>
+    <string name="title_workout_summary">Riepilogo allenamento</string>
     <string name="cd_export_tcx">Esporta TCX</string>
     <string name="label_started_at">Iniziato alle %1$s</string>
     <string name="label_distance">DISTANZA</string>
@@ -92,14 +94,14 @@
     <string name="lang_es">Spagnolo</string>
     <string name="lang_it">Italiano</string>
 
-    <string name="error_bluetooth_disabled">Il Bluetooth è disattivato. Per favore, attivalo.</string>
-    <string name="error_no_rower_selected">Nessun vogatore collegato. Seleziona prima l\'hardware.</string>
+    <string name="error_bluetooth_disabled">Il Bluetooth è disattivato. Per favore attivalo.</string>
+    <string name="error_no_rower_selected">Nessun vogatore connesso. Seleziona prima l\'hardware.</string>
     <string name="error_rower_connection_failed">Errore di connessione al vogatore: %1$s</string>
 
     <!-- About Screen -->
-    <string name="title_about">Informazioni su SyncRow</string>
-    <string name="about_description">SyncRow è un\'app per il canottaggio indoor Android leggera e open-source, progettata per colmare il divario tra l\'hardware per il canottaggio indoor e le moderne piattaforme di fitness come Strava. Niente abbonamenti, niente pubblicità, solo dati.</string>
-    <string name="btn_visit_homepage">VISITA LA HOMEPAGE</string>
+    <string name="title_about">Info su SyncRow</string>
+    <string name="about_description">SyncRow è un\'app leggera e open-source per vogatori Android progettata per colmare il divario tra l\'hardware di voga indoor e le moderne piattaforme di fitness come Strava. Niente abbonamenti, niente pubblicità, solo dati.</string>
+    <string name="btn_visit_homepage">VISITA HOMEPAGE</string>
     <string name="btn_visit_github">VEDI SU GITHUB</string>
     <string name="label_version">Versione %1$s</string>
 </resources>

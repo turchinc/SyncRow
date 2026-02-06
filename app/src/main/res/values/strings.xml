@@ -2,6 +2,7 @@
     <string name="app_name">SyncRow</string>
     <string name="btn_just_row">JUST ROW</string>
     <string name="btn_history">WORKOUT HISTORY</string>
+    <string name="btn_training">TRAINING</string>
     <string name="btn_hardware">HARDWARE</string>
     <string name="btn_profile">PROFILE</string>
     <string name="btn_quit">QUIT APP</string>
@@ -103,4 +104,72 @@
     <string name="btn_visit_homepage">VISIT HOMEPAGE</string>
     <string name="btn_visit_github">VIEW ON GITHUB</string>
     <string name="label_version">Version %1$s</string>
+
+    <!-- Training Feature -->
+    <string name="title_training_plans">Training Plans</string>
+    <string name="title_create_plan">Create Plan</string>
+    <string name="title_edit_plan">Edit Plan</string>
+    <string name="cd_create_plan">Create Plan</string>
+    <string name="cd_sort">Sort</string>
+    <string name="cd_filter">Filter</string>
+    <string name="cd_reset_filters">Reset Filters</string>
+    <string name="cd_favorite">Favorite</string>
+    <string name="cd_copy">Copy</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_remove_block">Remove Block</string>
+    <string name="cd_remove_segment">Remove Segment</string>
+    <string name="cd_add_target">Add Target</string>
+    <string name="cd_remove_target">Remove Target</string>
+
+    <string name="label_no_plans">No training plans found matching filter.</string>
+    <string name="label_plan_name">Plan Name</string>
+    <string name="label_description">Description</string>
+    <string name="label_difficulty">Difficulty</string>
+    <string name="label_intensity">Intensity</string>
+    <string name="label_block_name">Block Name</string>
+    <string name="label_repeats">Repeats</string>
+    <string name="label_segments">Segments</string>
+    <string name="label_targets">Targets</string>
+    <string name="label_meters">Meters</string>
+    <string name="label_duration">Duration</string>
+    <string name="label_min">min</string>
+    <string name="label_sec">sec</string>
+    <string name="label_set_duration">Set Duration</string>
+
+    <string name="btn_add_block">Add Block</string>
+    <string name="btn_add_segment">Add Segment</string>
+    <string name="btn_add_target">Add Target</string>
+    <string name="btn_save_plan">Save</string>
+    <string name="btn_ok">OK</string>
+    <string name="btn_cancel_dialog">Cancel</string>
+
+    <string name="target_spm">Stroke Rate (SPM)</string>
+    <string name="target_watts">Power (Watts)</string>
+    <string name="target_hr">Heart Rate</string>
+    <string name="target_pace">Pace (/500m)</string>
+
+    <string name="filter_all">All</string>
+    <string name="filter_favorites">Favorites</string>
+    <string name="difficulty_beginner">Beginner</string>
+    <string name="difficulty_intermediate">Intermediate</string>
+    <string name="difficulty_advanced">Advanced</string>
+    <string name="intensity_low">Low</string>
+    <string name="intensity_medium">Medium</string>
+    <string name="intensity_hard">Hard</string>
+
+    <string name="sort_difficulty_asc">Difficulty (Beginner-Advanced)</string>
+    <string name="sort_difficulty_desc">Difficulty (Advanced-Beginner)</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_intensity">Intensity</string>
+    <string name="sort_date">Created Date</string>
+
+    <string name="block_title">Block %1$d</string>
+
+    <string name="segment_type_active">Active</string>
+    <string name="segment_type_recovery">Recovery</string>
+    <string name="segment_type_warmup">Warm-up</string>
+    <string name="segment_type_cooldown">Cool-down</string>
+
+    <string name="duration_type_time">Time</string>
+    <string name="duration_type_distance">Distance</string>
 </resources>

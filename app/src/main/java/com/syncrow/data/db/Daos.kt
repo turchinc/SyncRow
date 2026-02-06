@@ -55,3 +55,38 @@ interface SplitDao {
   @Query("SELECT * FROM workout_splits WHERE workoutId = :workoutId ORDER BY splitIndex ASC")
   suspend fun getSplitsForWorkoutSync(workoutId: Long): List<WorkoutSplit>
 }
+
+@Dao
+interface TrainingDao {
+  @Query("SELECT * FROM training_plans ORDER BY createdAt DESC")
+  fun getAllTrainingPlans(): Flow<List<TrainingPlan>>
+
+  @Query("SELECT * FROM training_plans WHERE isFavorite = 1 ORDER BY createdAt DESC")
+  fun getFavoriteTrainingPlans(): Flow<List<TrainingPlan>>
+
+  @Insert suspend fun insertTrainingPlan(plan: TrainingPlan): Long
+
+  @Update suspend fun updateTrainingPlan(plan: TrainingPlan)
+
+  @Delete suspend fun deleteTrainingPlan(plan: TrainingPlan)
+
+  // Blocks
+  @Insert suspend fun insertBlock(block: TrainingBlock): Long
+
+  @Query("DELETE FROM training_blocks WHERE planId = :planId")
+  suspend fun deleteBlocksForPlan(planId: Long)
+
+  @Query("SELECT * FROM training_blocks WHERE planId = :planId ORDER BY orderIndex ASC")
+  suspend fun getBlocksForPlanSync(planId: Long): List<TrainingBlock>
+
+  // Segments
+  @Insert suspend fun insertSegment(segment: TrainingSegment)
+
+  @Insert suspend fun insertSegments(segments: List<TrainingSegment>)
+
+  @Query("DELETE FROM training_segments WHERE blockId = :blockId")
+  suspend fun deleteSegmentsForBlock(blockId: Long)
+
+  @Query("SELECT * FROM training_segments WHERE blockId = :blockId ORDER BY orderIndex ASC")
+  suspend fun getSegmentsForBlockSync(blockId: Long): List<TrainingSegment>
+}

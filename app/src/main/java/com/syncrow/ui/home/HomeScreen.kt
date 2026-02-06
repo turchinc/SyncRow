@@ -19,6 +19,7 @@ import com.syncrow.ui.workout.WorkoutViewModel
 fun HomeScreen(
   viewModel: WorkoutViewModel,
   onStartWorkout: () -> Unit,
+  onNavigateToTraining: () -> Unit,
   onNavigateToDiscovery: () -> Unit,
   onNavigateToProfile: () -> Unit,
   onNavigateToHistory: () -> Unit,
@@ -71,12 +72,33 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedButton(
-          onClick = onNavigateToHistory,
-          modifier = Modifier.fillMaxWidth().height(64.dp),
-          colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-          Text(stringResource(R.string.btn_history), fontSize = 18.sp)
+          OutlinedButton(
+            onClick = onNavigateToHistory,
+            modifier = Modifier.weight(1f).height(64.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+          ) {
+            Text(
+              stringResource(R.string.btn_history),
+              fontSize = 16.sp,
+              fontWeight = FontWeight.SemiBold
+            )
+          }
+
+          OutlinedButton(
+            onClick = onNavigateToTraining,
+            modifier = Modifier.weight(1f).height(64.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+          ) {
+            Text(
+              stringResource(R.string.btn_training),
+              fontSize = 16.sp,
+              fontWeight = FontWeight.SemiBold
+            )
+          }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

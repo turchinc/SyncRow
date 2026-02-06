@@ -365,7 +365,7 @@ class WorkoutViewModel(
     viewModelScope.launch {
       if (_sessionState.value == SessionState.IDLE) {
         val now = System.currentTimeMillis()
-5        currentWorkoutId = workoutDao.insertWorkout(Workout(userId = user.id, startTime = now))
+        currentWorkoutId = workoutDao.insertWorkout(Workout(userId = user.id, startTime = now))
         // Reset split counters
         lastSplitTime = 0
         lastSplitDistance = 0

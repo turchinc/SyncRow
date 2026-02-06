@@ -2,6 +2,7 @@
     <string name="app_name">SyncRow</string>
     <string name="btn_just_row">RAMER</string>
     <string name="btn_history">HISTORIQUE</string>
+    <string name="btn_training">ENTRAÎNEMENT</string>
     <string name="btn_hardware">MATÉRIEL</string>
     <string name="btn_profile">PROFIL</string>
     <string name="btn_quit">QUITTER L\'APP</string>

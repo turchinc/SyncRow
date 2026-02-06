@@ -116,3 +116,75 @@ data class PersonalBest(
   val bestValue: Double, // Time in seconds or distance in meters
   val date: Long
 )
+
+@Entity(tableName = "training_plans")
+data class TrainingPlan(
+  @PrimaryKey(autoGenerate = true) val id: Long = 0,
+  val name: String,
+  val description: String,
+  val difficulty: String, // Beginner, Intermediate, Advanced
+  val intensity: String, // Easy, Medium, Hard
+  val isFavorite: Boolean = false,
+  val createdAt: Long = System.currentTimeMillis()
+)
+
+@Entity(
+  tableName = "training_blocks",
+  foreignKeys =
+    [
+      ForeignKey(
+        entity = TrainingPlan::class,
+        parentColumns = ["id"],
+        childColumns = ["planId"],
+        onDelete = ForeignKey.CASCADE
+      )
+    ],
+  indices = [Index("planId")]
+)
+data class TrainingBlock(
+  @PrimaryKey(autoGenerate = true) val id: Long = 0,
+  val planId: Long,
+  val orderIndex: Int,
+  val name: String, // e.g. "Warm-up", "Interval Set"
+  val repeatCount: Int = 1 // Defines "Rounds"
+)
+
+enum class SegmentType {
+  ACTIVE,
+  RECOVERY, // Replaces "Rest"
+  WARMUP,
+  COOLDOWN
+}
+
+enum class DurationType {
+  TIME,
+  DISTANCE
+}
+
+@Entity(
+  tableName = "training_segments",
+  foreignKeys =
+    [
+      ForeignKey(
+        entity = TrainingBlock::class,
+        parentColumns = ["id"],
+        childColumns = ["blockId"],
+        onDelete = ForeignKey.CASCADE
+      )
+    ],
+  indices = [Index("blockId")]
+)
+data class TrainingSegment(
+  @PrimaryKey(autoGenerate = true) val id: Long = 0,
+  val blockId: Long,
+  val orderIndex: Int,
+  val segmentType: String, // Store enum name: ACTIVE, RECOVERY
+  val durationType: String, // Store enum name: TIME, DISTANCE
+  val durationValue: Int, // Seconds or Meters
+
+  // Targets (multiple allowed)
+  val targetSpm: Int? = null,
+  val targetWatts: Int? = null,
+  val targetPace: Int? = null, // Seconds per 500m
+  val targetHr: Int? = null
+)

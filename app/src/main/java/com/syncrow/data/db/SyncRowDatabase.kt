@@ -7,8 +7,17 @@ import androidx.room.RoomDatabase
 
 @Database(
   entities =
-    [User::class, Workout::class, MetricPoint::class, PersonalBest::class, WorkoutSplit::class],
-  version = 4,
+    [
+      User::class,
+      Workout::class,
+      MetricPoint::class,
+      PersonalBest::class,
+      WorkoutSplit::class,
+      TrainingPlan::class,
+      TrainingBlock::class,
+      TrainingSegment::class
+    ],
+  version = 7,
   exportSchema = false
 )
 abstract class SyncRowDatabase : RoomDatabase() {
@@ -19,6 +28,8 @@ abstract class SyncRowDatabase : RoomDatabase() {
   abstract fun metricPointDao(): MetricPointDao
 
   abstract fun splitDao(): SplitDao
+
+  abstract fun trainingDao(): TrainingDao
 
   companion object {
     @Volatile private var INSTANCE: SyncRowDatabase? = null
