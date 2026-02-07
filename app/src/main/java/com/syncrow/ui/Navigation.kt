@@ -69,7 +69,18 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
       )
     }
     composable(Screen.Workout.route) {
-      WorkoutDashboard(viewModel = viewModel, onFinish = { navController.popBackStack() })
+      WorkoutDashboard(
+        viewModel = viewModel,
+        onFinish = { savedWorkoutId ->
+          // Always pop the workout screen itself
+          navController.popBackStack()
+
+          // If a workout was saved, navigate to its detail screen
+          if (savedWorkoutId != null && savedWorkoutId > 0) {
+            navController.navigate(Screen.WorkoutDetail.createRoute(savedWorkoutId))
+          }
+        }
+      )
     }
     composable(Screen.Discovery.route) {
       DiscoveryScreen(viewModel = viewModel, onBack = { navController.popBackStack() })

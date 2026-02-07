@@ -95,6 +95,14 @@ This document provides a detailed checklist of the project's status, broken down
   - [x] Segment countdown timers (Time/Distance) and overall progress.
   - [x] Audible cues (beeps and TTS) for countdowns and segment changes.
   - [x] Automatic split generation for each completed segment.
+- [ ] Usability improvements
+  - [x] implement light and dark modes
+  - [x] add profile setting "auto-save to strava"
+  
 - [ ] **Advanced Analysis**
+- [ ] when a workout is saved, and it was associated with a training, the association should be retained so that we can later implement our "personal best" and "training ghost" feature.
   - [ ] Personal Bests tracking (`personal_bests` table).
   - [ ] Row against "ghosts" from workout history.
+- [ ] Additional training log integrations
+  - [ ] Google fit integration see `docs/Google-fit.md
+  - [ ] Garmin Connect integration

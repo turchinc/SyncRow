@@ -25,7 +25,7 @@ import com.syncrow.R
 import com.syncrow.hal.RowerMetrics
 
 @Composable
-fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
+fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: (Long?) -> Unit) {
   val metrics by viewModel.displayMetrics.collectAsState()
   val elapsedSeconds by viewModel.elapsedSeconds.collectAsState()
   val sessionState by viewModel.sessionState.collectAsState()
@@ -38,7 +38,11 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
   // Keep screen on during workout
   KeepScreenOn()
 
-  Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF001220)) {
+  LaunchedEffect(Unit) {
+    viewModel.workoutFinishedEvent.collect { savedWorkoutId -> onFinish(savedWorkoutId) }
+  }
+
+  Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Box(modifier = Modifier.fillMaxSize()) {
       if (trainingState.isActive) {
         TrainingLayout(metrics, elapsedSeconds, sessionState, trainingState, viewModel) {
@@ -62,12 +66,16 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
       // Countdown Overlay
       if (sessionState == SessionState.COUNTDOWN) {
         Box(
-          modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
+          modifier =
+            Modifier.fillMaxSize()
+              .background(MaterialTheme.colorScheme.background.copy(alpha = 0.85f)),
           contentAlignment = Alignment.Center
         ) {
           Text(
             text = if (countdownSeconds > 0) countdownSeconds.toString() else "GO!",
-            color = if (countdownSeconds > 0) Color.Yellow else Color.Green,
+            color =
+              if (countdownSeconds > 0) MaterialTheme.colorScheme.primary
+              else Color(0xFF00C853), // Green
             fontSize = 120.sp,
             fontWeight = FontWeight.Black
           )
@@ -86,7 +94,7 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
           onClick = {
             viewModel.finishWorkout(save = true)
             showSaveDialog = false
-            onFinish()
+            // onFinish is now handled by the LaunchedEffect
           }
         ) {
           Text(stringResource(R.string.btn_save))
@@ -109,10 +117,10 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: () -> Unit) {
             onClick = {
               viewModel.finishWorkout(save = false)
               showSaveDialog = false
-              onFinish()
+              // onFinish is now handled by the LaunchedEffect
             }
           ) {
-            Text(stringResource(R.string.btn_discard), color = Color.Red)
+            Text(stringResource(R.string.btn_discard), color = MaterialTheme.colorScheme.error)
           }
         }
       }
@@ -136,10 +144,14 @@ fun TrainingLayout(
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically
     ) {
-      Text(trainingState.planName, color = Color.Gray, fontSize = 14.sp)
+      Text(
+        trainingState.planName,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontSize = 14.sp
+      )
       Text(
         "Segment ${trainingState.currentSegmentIndex + 1}/${trainingState.totalSegments}",
-        color = Color.Gray,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = 14.sp
       )
     }
@@ -155,13 +167,13 @@ fun TrainingLayout(
         // Segment Label & Targets
         Text(
           text = trainingState.currentSegment?.label ?: "",
-          color = Color.White,
+          color = MaterialTheme.colorScheme.onBackground,
           fontSize = 24.sp,
           fontWeight = FontWeight.Bold
         )
         Text(
           text = trainingState.currentSegment?.targets ?: "",
-          color = Color.Cyan,
+          color = MaterialTheme.colorScheme.secondary,
           fontSize = 32.sp,
           fontWeight = FontWeight.Bold,
           textAlign = TextAlign.Center
@@ -173,19 +185,21 @@ fun TrainingLayout(
         if (trainingState.currentSegment?.durationType == "TIME") {
           Text(
             text = formatTime(trainingState.segmentTimeRemaining),
-            color = if (trainingState.segmentTimeRemaining <= 5) Color.Red else Color.Yellow,
+            color =
+              if (trainingState.segmentTimeRemaining <= 5) MaterialTheme.colorScheme.error
+              else MaterialTheme.colorScheme.primary,
             fontSize = 100.sp,
             fontWeight = FontWeight.Black
           )
-          Text("REMAINING", color = Color.Gray, fontSize = 16.sp)
+          Text("REMAINING", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
         } else {
           Text(
             text = "${trainingState.segmentDistanceRemaining}m",
-            color = Color.Yellow,
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 80.sp,
             fontWeight = FontWeight.Black
           )
-          Text("REMAINING", color = Color.Gray, fontSize = 16.sp)
+          Text("REMAINING", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
         }
       }
     }
@@ -193,36 +207,29 @@ fun TrainingLayout(
     // Next Segment Preview
     if (trainingState.nextSegment != null) {
       Surface(
-        color = Color.White.copy(alpha = 0.1f),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
       ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
           Text(
             "NEXT:",
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(end = 8.dp)
           )
-          Column(modifier = Modifier.weight(1f)) {
+          Column {
             Text(
               text = trainingState.nextSegment.label,
-              color = Color.White,
+              color = MaterialTheme.colorScheme.onSurface,
               fontWeight = FontWeight.Bold
             )
             Text(
               text = trainingState.nextSegment.targets,
-              color = Color.LightGray,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
               fontSize = 12.sp
             )
           }
-          val duration =
-            if (trainingState.nextSegment.durationType == "TIME") {
-              formatTime(trainingState.nextSegment.durationValue)
-            } else {
-              "${trainingState.nextSegment.durationValue}m"
-            }
-          Text(duration, color = Color.White, fontWeight = FontWeight.Bold)
         }
       }
     }
@@ -281,13 +288,13 @@ fun PortraitLayout(
   ) {
     Text(
       text = stringResource(R.string.btn_just_row),
-      color = Color.Green,
+      color = Color(0xFF00C853), // Keep green for brand/status
       fontSize = 16.sp,
       fontWeight = FontWeight.ExtraBold
     )
     Text(
       text = formatTime(elapsedSeconds),
-      color = Color.Yellow,
+      color = MaterialTheme.colorScheme.primary, // Used to be Yellow
       fontSize = 48.sp,
       fontWeight = FontWeight.Bold
     )
@@ -340,7 +347,7 @@ fun LandscapeLayout(
     ) {
       Text(
         text = formatTime(elapsedSeconds),
-        color = Color.Yellow,
+        color = MaterialTheme.colorScheme.primary,
         fontSize = 60.sp,
         fontWeight = FontWeight.Bold
       )
@@ -393,10 +400,12 @@ fun LandscapeLayout(
 
 @Composable
 fun SessionControls(sessionState: SessionState, viewModel: WorkoutViewModel, onStop: () -> Unit) {
+  val trainingState by viewModel.trainingState.collectAsState()
+
   Row(
     horizontalArrangement = Arrangement.Center,
     verticalAlignment = Alignment.CenterVertically,
-    modifier = Modifier.padding(top = 8.dp)
+    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
   ) {
     when (sessionState) {
       SessionState.IDLE -> {
@@ -408,22 +417,40 @@ fun SessionControls(sessionState: SessionState, viewModel: WorkoutViewModel, onS
       SessionState.ROWING -> {
         Button(onClick = { viewModel.pauseWorkout() }) { Text(stringResource(R.string.btn_pause)) }
         Spacer(modifier = Modifier.width(8.dp))
-        // NEW: Split Button
-        OutlinedButton(
-          onClick = { viewModel.markSplit() },
-          colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-        ) {
-          Text(stringResource(R.string.btn_split))
+
+        if (trainingState.isActive) {
+          OutlinedButton(
+            onClick = { viewModel.skipSegment() },
+            colors =
+              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+          ) {
+            Text("SKIP") // TODO: Localize
+          }
+        } else {
+          OutlinedButton(
+            onClick = { viewModel.markSplit() },
+            colors =
+              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+          ) {
+            Text(stringResource(R.string.btn_split))
+          }
         }
+
         Spacer(modifier = Modifier.width(8.dp))
-        Button(onClick = onStop, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
+        Button(
+          onClick = onStop,
+          colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ) {
           Text(stringResource(R.string.btn_stop))
         }
       }
       SessionState.PAUSED -> {
         Button(onClick = { viewModel.startWorkout() }) { Text(stringResource(R.string.btn_resume)) }
         Spacer(modifier = Modifier.width(8.dp))
-        Button(onClick = onStop, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
+        Button(
+          onClick = onStop,
+          colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ) {
           Text(stringResource(R.string.btn_stop))
         }
       }
@@ -436,14 +463,14 @@ fun MetricDisplay(
   label: String,
   value: String,
   isPrimary: Boolean = false,
-  color: Color = Color.White,
+  color: Color = MaterialTheme.colorScheme.onBackground, // Default to OnBackground
   valueSize: TextUnit? = null,
   labelSize: TextUnit? = null
 ) {
   Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(4.dp)) {
     Text(
       text = label,
-      color = Color.Gray,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
       fontSize = labelSize ?: if (isPrimary) 14.sp else 12.sp,
       fontWeight = FontWeight.Bold
     )

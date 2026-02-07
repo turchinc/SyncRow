@@ -120,6 +120,9 @@ class WorkoutViewModel(
   private val _trainingState = MutableStateFlow(TrainingSessionState())
   val trainingState: StateFlow<TrainingSessionState> = _trainingState.asStateFlow()
 
+  private val _workoutFinishedEvent = MutableSharedFlow<Long?>()
+  val workoutFinishedEvent = _workoutFinishedEvent.asSharedFlow()
+
   private var runtimeSegments: List<RuntimeSegment> = emptyList()
   private var segmentStartTime = 0
   private var segmentStartDistance = 0
@@ -314,6 +317,12 @@ class WorkoutViewModel(
       if (remaining <= 0) {
         advanceSegment()
       }
+    }
+  }
+
+  fun skipSegment() {
+    if (_trainingState.value.isActive) {
+      advanceSegment()
     }
   }
 
@@ -770,6 +779,18 @@ class WorkoutViewModel(
               "WorkoutViewModel",
               "Workout saved: ID $workoutId, Dist ${workout.totalDistanceMeters}m"
             )
+
+            // Auto-upload
+            val currentUser = _currentUser.value
+            if (
+              currentUser != null &&
+                currentUser.autoUploadToStrava &&
+                currentUser.stravaToken != null
+            ) {
+              syncWorkoutToStrava(workoutId)
+            }
+
+            _workoutFinishedEvent.emit(workoutId)
           }
         } else {
           val workout = workoutDao.getWorkoutById(workoutId)
@@ -777,8 +798,12 @@ class WorkoutViewModel(
             workoutDao.deleteWorkout(workout)
             Log.d("WorkoutViewModel", "Workout deleted: ID $workoutId")
           }
+          _workoutFinishedEvent.emit(null)
         }
+      } else {
+        _workoutFinishedEvent.emit(null)
       }
+
       _sessionState.value = SessionState.IDLE
       _elapsedSeconds.value = 0
       _displayMetrics.value = RowerMetrics(0, 0, 0, 0, _displayMetrics.value.heartRate)

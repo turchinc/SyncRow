@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -193,7 +194,7 @@ fun DropdownField(
   label: String,
   options: List<Pair<String, Int>>, // DB Value -> Res ID
   selectedDisplay: String,
-  onSelected: (String) -> Unit, // Returns DB Value
+  onSelected: (String) -> Unit,
   modifier: Modifier = Modifier
 ) {
   var expanded by remember { mutableStateOf(false) }
@@ -566,11 +567,12 @@ fun DurationPickerDialog(initialSeconds: Int, onConfirm: (Int) -> Unit, onDismis
 
   var selectedMins by remember { mutableIntStateOf(initialMins) }
   var selectedSecs by remember { mutableIntStateOf(initialSecs) }
+  val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
   Dialog(onDismissRequest = onDismiss) {
     Card(
       shape = MaterialTheme.shapes.extraLarge,
-      colors = CardDefaults.cardColors(containerColor = Color.White)
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
       Column(
         modifier = Modifier.padding(24.dp),
@@ -579,7 +581,7 @@ fun DurationPickerDialog(initialSeconds: Int, onConfirm: (Int) -> Unit, onDismis
         Text(
           stringResource(R.string.label_set_duration),
           style = MaterialTheme.typography.headlineSmall,
-          color = Color.Black
+          color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(16.dp))
 
@@ -593,7 +595,11 @@ fun DurationPickerDialog(initialSeconds: Int, onConfirm: (Int) -> Unit, onDismis
             modifier = Modifier.width(64.dp),
             factory = { context ->
               val themedContext =
-                android.view.ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Light)
+                android.view.ContextThemeWrapper(
+                  context,
+                  if (isDark) android.R.style.Theme_DeviceDefault
+                  else android.R.style.Theme_DeviceDefault_Light
+                )
               NumberPicker(themedContext).apply {
                 minValue = 0
                 maxValue = 59
@@ -605,7 +611,7 @@ fun DurationPickerDialog(initialSeconds: Int, onConfirm: (Int) -> Unit, onDismis
           Text(
             stringResource(R.string.label_min),
             modifier = Modifier.padding(horizontal = 8.dp),
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
           )
 
           // Seconds Picker
@@ -613,7 +619,11 @@ fun DurationPickerDialog(initialSeconds: Int, onConfirm: (Int) -> Unit, onDismis
             modifier = Modifier.width(64.dp),
             factory = { context ->
               val themedContext =
-                android.view.ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Light)
+                android.view.ContextThemeWrapper(
+                  context,
+                  if (isDark) android.R.style.Theme_DeviceDefault
+                  else android.R.style.Theme_DeviceDefault_Light
+                )
               NumberPicker(themedContext).apply {
                 minValue = 0
                 maxValue = 59
@@ -626,7 +636,7 @@ fun DurationPickerDialog(initialSeconds: Int, onConfirm: (Int) -> Unit, onDismis
           Text(
             stringResource(R.string.label_sec),
             modifier = Modifier.padding(horizontal = 8.dp),
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
           )
         }
 

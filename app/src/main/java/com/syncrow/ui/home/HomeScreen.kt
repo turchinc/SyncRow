@@ -29,10 +29,7 @@ fun HomeScreen(
 ) {
   val currentUser by viewModel.currentUser.collectAsState()
 
-  Surface(
-    modifier = Modifier.fillMaxSize(),
-    color = Color(0xFF001220) // Deep Blue
-  ) {
+  Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
       // Main Content Centered
       Column(
@@ -44,7 +41,7 @@ fun HomeScreen(
           text = stringResource(R.string.app_name).uppercase(),
           fontSize = 48.sp,
           fontWeight = FontWeight.Black,
-          color = Color.White
+          color = MaterialTheme.colorScheme.primary
         )
 
         // User info as a subtitle adds context to the session
@@ -54,7 +51,7 @@ fun HomeScreen(
               R.string.label_current_user,
               currentUser?.name ?: stringResource(R.string.loading)
             ),
-          color = Color.Gray,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
           fontSize = 14.sp,
           modifier = Modifier.padding(top = 4.dp, bottom = 48.dp)
         )
@@ -67,7 +64,8 @@ fun HomeScreen(
           Text(
             stringResource(R.string.btn_just_row),
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color.White
           )
         }
 
@@ -80,7 +78,8 @@ fun HomeScreen(
           OutlinedButton(
             onClick = onNavigateToHistory,
             modifier = Modifier.weight(1f).height(64.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+            colors =
+              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
           ) {
             Text(
               stringResource(R.string.btn_history),
@@ -93,7 +92,8 @@ fun HomeScreen(
           OutlinedButton(
             onClick = onNavigateToTraining,
             modifier = Modifier.weight(1f).height(64.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+            colors =
+              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
           ) {
             Text(
               stringResource(R.string.btn_training),
@@ -113,7 +113,8 @@ fun HomeScreen(
           OutlinedButton(
             onClick = onNavigateToDiscovery,
             modifier = Modifier.weight(1f).height(56.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+            colors =
+              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
           ) {
             Text(
               stringResource(R.string.btn_hardware),
@@ -125,7 +126,8 @@ fun HomeScreen(
           OutlinedButton(
             onClick = onNavigateToProfile,
             modifier = Modifier.weight(1f).height(56.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+            colors =
+              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
           ) {
             Text(
               stringResource(R.string.btn_profile),
@@ -142,13 +144,25 @@ fun HomeScreen(
         verticalAlignment = Alignment.CenterVertically
       ) {
         TextButton(onClick = onNavigateToAbout) {
-          Text(stringResource(R.string.btn_about), color = Color.Gray, fontSize = 14.sp)
+          Text(
+            stringResource(R.string.btn_about),
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = 14.sp
+          )
         }
 
-        Text(text = "•", color = Color.DarkGray, modifier = Modifier.padding(horizontal = 8.dp))
+        Text(
+          text = "•",
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(horizontal = 8.dp)
+        )
 
         TextButton(onClick = onQuit) {
-          Text(stringResource(R.string.btn_quit), color = Color.Gray, fontSize = 14.sp)
+          Text(
+            stringResource(R.string.btn_quit),
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = 14.sp
+          )
         }
       }
     }

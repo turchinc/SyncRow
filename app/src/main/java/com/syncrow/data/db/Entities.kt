@@ -16,7 +16,9 @@ data class User(
   val stravaToken: String? = null,
   val stravaRefreshToken: String? = null,
   val stravaTokenExpiresAt: Long? = null,
-  val languageCode: String = "en"
+  val autoUploadToStrava: Boolean = false,
+  val languageCode: String = "en",
+  val themeMode: String = "SYSTEM" // SYSTEM, LIGHT, DARK
 )
 
 @Entity(

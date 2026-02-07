@@ -10,14 +10,18 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.syncrow.ui.SyncRowNavGraph
+import com.syncrow.ui.theme.SyncRowTheme
 import com.syncrow.ui.workout.ToastEvent
 import com.syncrow.ui.workout.WorkoutViewModel
 
@@ -57,22 +61,31 @@ class MainActivity : AppCompatActivity() {
 
       LaunchedEffect(Unit) { launcher.launch(permissionsToRequest) }
 
-      MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-          viewModel =
-            viewModel(
-              factory =
-                WorkoutViewModel.Factory(
-                  app,
-                  rxBleClient,
-                  db.userDao(),
-                  db.workoutDao(),
-                  db.metricPointDao(),
-                  db.splitDao(),
-                  db.trainingDao(),
-                  stravaRepository
-                )
+      viewModel =
+        viewModel(
+          factory =
+            WorkoutViewModel.Factory(
+              app,
+              rxBleClient,
+              db.userDao(),
+              db.workoutDao(),
+              db.metricPointDao(),
+              db.splitDao(),
+              db.trainingDao(),
+              stravaRepository
             )
+        )
+
+      val currentUser by viewModel.currentUser.collectAsState()
+      val darkTheme =
+        when (currentUser?.themeMode) {
+          "LIGHT" -> false
+          "DARK" -> true
+          else -> isSystemInDarkTheme()
+        }
+
+      SyncRowTheme(darkTheme = darkTheme) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 
           // Collect and show toast messages from ViewModel
           LaunchedEffect(viewModel.toastEvent) {

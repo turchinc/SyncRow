@@ -7,7 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -209,10 +211,15 @@ fun EditProfileDialog(
   var height by remember { mutableStateOf(user.heightCm?.toString() ?: "") }
   var gender by remember { mutableStateOf(user.gender ?: "") }
   var languageCode by remember { mutableStateOf(user.languageCode) }
+  var themeMode by remember { mutableStateOf(user.themeMode) }
+  var autoUploadToStrava by remember { mutableStateOf(user.autoUploadToStrava) }
 
   val genders = listOf("Male", "Female", "Other")
   val languages = listOf("en", "fr", "de", "es", "it")
-  var expanded by remember { mutableStateOf(false) }
+  val themes = listOf("SYSTEM", "LIGHT", "DARK")
+
+  var expandedLang by remember { mutableStateOf(false) }
+  var expandedTheme by remember { mutableStateOf(false) }
 
   val onConnectStrava: () -> Unit = {
     val clientId = BuildConfig.STRAVA_CLIENT_ID.replace("\"", "").trim()
@@ -242,7 +249,10 @@ fun EditProfileDialog(
     onDismissRequest = onDismiss,
     title = { Text(stringResource(R.string.cd_edit_profile)) },
     text = {
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
         OutlinedTextField(
           value = name,
           onValueChange = { name = it },
@@ -278,8 +288,53 @@ fun EditProfileDialog(
           singleLine = true
         )
 
+        // Theme Selection
+        ExposedDropdownMenuBox(
+          expanded = expandedTheme,
+          onExpandedChange = { expandedTheme = !expandedTheme }
+        ) {
+          OutlinedTextField(
+            value =
+              when (themeMode) {
+                "LIGHT" -> stringResource(R.string.theme_light)
+                "DARK" -> stringResource(R.string.theme_dark)
+                else -> stringResource(R.string.theme_system)
+              },
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.label_theme)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTheme) },
+            modifier = Modifier.menuAnchor().fillMaxWidth()
+          )
+          ExposedDropdownMenu(
+            expanded = expandedTheme,
+            onDismissRequest = { expandedTheme = false }
+          ) {
+            themes.forEach { mode ->
+              DropdownMenuItem(
+                text = {
+                  Text(
+                    when (mode) {
+                      "LIGHT" -> stringResource(R.string.theme_light)
+                      "DARK" -> stringResource(R.string.theme_dark)
+                      else -> stringResource(R.string.theme_system)
+                    }
+                  )
+                },
+                onClick = {
+                  themeMode = mode
+                  expandedTheme = false
+                }
+              )
+            }
+          }
+        }
+
         // Language Selection
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+        ExposedDropdownMenuBox(
+          expanded = expandedLang,
+          onExpandedChange = { expandedLang = !expandedLang }
+        ) {
           OutlinedTextField(
             value =
               when (languageCode) {
@@ -292,10 +347,13 @@ fun EditProfileDialog(
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.label_language)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLang) },
             modifier = Modifier.menuAnchor().fillMaxWidth()
           )
-          ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+          ExposedDropdownMenu(
+            expanded = expandedLang,
+            onDismissRequest = { expandedLang = false }
+          ) {
             languages.forEach { code ->
               DropdownMenuItem(
                 text = {
@@ -311,7 +369,7 @@ fun EditProfileDialog(
                 },
                 onClick = {
                   languageCode = code
-                  expanded = false
+                  expandedLang = false
                 }
               )
             }
@@ -339,7 +397,20 @@ fun EditProfileDialog(
           }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+        Text(
+          stringResource(R.string.section_connected_apps),
+          style = MaterialTheme.typography.titleMedium,
+          color = MaterialTheme.colorScheme.primary
+        )
+
+        // Strava Section
+        Text(
+          stringResource(R.string.label_strava_settings),
+          style = MaterialTheme.typography.labelLarge,
+          modifier = Modifier.padding(top = 8.dp)
+        )
+
         if (user.stravaToken == null) {
           Button(
             onClick = onConnectStrava,
@@ -351,6 +422,28 @@ fun EditProfileDialog(
             Text(stringResource(R.string.btn_connect_strava))
           }
         } else {
+          // Auto-upload switch
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier =
+              Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable {
+                autoUploadToStrava = !autoUploadToStrava
+              }
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                stringResource(R.string.label_auto_upload),
+                style = MaterialTheme.typography.bodyMedium
+              )
+              Text(
+                stringResource(R.string.description_auto_upload),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+              )
+            }
+            Switch(checked = autoUploadToStrava, onCheckedChange = { autoUploadToStrava = it })
+          }
+
           OutlinedButton(
             onClick = { viewModel.disconnectStrava() },
             modifier = Modifier.fillMaxWidth(),
@@ -373,7 +466,9 @@ fun EditProfileDialog(
               weightKg = weight.toDoubleOrNull(),
               heightCm = height.toIntOrNull(),
               gender = gender,
-              languageCode = languageCode
+              languageCode = languageCode,
+              themeMode = themeMode,
+              autoUploadToStrava = autoUploadToStrava
             )
           )
         }
