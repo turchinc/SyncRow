@@ -76,6 +76,13 @@ interface TrainingDao {
   @Query("SELECT * FROM training_plans ORDER BY createdAt DESC")
   fun getAllPlansWithDetails(): Flow<List<TrainingPlanWithBlocks>>
 
+  @Transaction
+  @Query("SELECT * FROM training_plans WHERE id = :planId")
+  suspend fun getPlanWithDetailsById(planId: Long): TrainingPlanWithBlocks?
+
+  @Query("SELECT * FROM training_plans WHERE id = :planId")
+  suspend fun getPlanByIdSync(planId: Long): TrainingPlan?
+
   @Query("SELECT * FROM training_plans WHERE isFavorite = 1 ORDER BY createdAt DESC")
   fun getFavoriteTrainingPlans(): Flow<List<TrainingPlan>>
 

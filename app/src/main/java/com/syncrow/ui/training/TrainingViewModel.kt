@@ -2,6 +2,8 @@ package com.syncrow.ui.training
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,6 +14,7 @@ import com.syncrow.data.db.TrainingBlock
 import com.syncrow.data.db.TrainingDao
 import com.syncrow.data.db.TrainingPlan
 import com.syncrow.data.db.TrainingSegment
+import com.syncrow.util.PlanExchange
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +46,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
   AndroidViewModel(application) {
 
   private val prefs = application.getSharedPreferences("training_prefs", Context.MODE_PRIVATE)
+  private val planExchange = PlanExchange(application, trainingDao)
 
   // Now fetching full details to compute duration
   private val _allPlansWithDetails = trainingDao.getAllPlansWithDetails()
@@ -320,6 +324,23 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
   fun toggleFavorite(plan: TrainingPlan) {
     viewModelScope.launch {
       trainingDao.updateTrainingPlan(plan.copy(isFavorite = !plan.isFavorite))
+    }
+  }
+
+  // --- Export / Import ---
+
+  fun sharePlan(planId: Long) {
+    viewModelScope.launch { planExchange.exportPlan(planId) }
+  }
+
+  fun importPlan(uri: Uri) {
+    viewModelScope.launch {
+      val newPlanId = planExchange.importPlan(uri)
+      if (newPlanId != null) {
+        Toast.makeText(getApplication(), "Plan imported successfully!", Toast.LENGTH_SHORT).show()
+      } else {
+        Toast.makeText(getApplication(), "Failed to import plan.", Toast.LENGTH_SHORT).show()
+      }
     }
   }
 

@@ -44,6 +44,10 @@ See [STATUS.md](./STATUS.md) for the detailed implementation checklist.
 - [ ] **Progress Reporting**: Personal Bests tracking and visual performance trends over time.
 - [ ] **Ghost Racer**: Interactive UI for racing against historical workout data.
 
+## Later
+
+- [ ] Other bluetooth training devices and workout types (cycling, treadmill, ...)
+
 ## 6. Licensing Notice
 
 SyncRow is licensed under the Business Source License 1.1.

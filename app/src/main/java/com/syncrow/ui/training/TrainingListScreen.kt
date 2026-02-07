@@ -1,5 +1,8 @@
 package com.syncrow.ui.training
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,10 +13,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,6 +42,13 @@ fun TrainingListScreen(
   val sortOrder by viewModel.sortOrder.collectAsState()
   val filterDifficulty by viewModel.filterDifficulty.collectAsState()
 
+  // Launcher for importing JSON file
+  val importLauncher =
+    rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocument()) { uri: Uri?
+      ->
+      uri?.let { viewModel.importPlan(it) }
+    }
+
   Scaffold(
     topBar = {
       TopAppBar(
@@ -50,6 +62,11 @@ fun TrainingListScreen(
           }
         },
         actions = {
+          // Import Button
+          IconButton(onClick = { importLauncher.launch(arrayOf("application/json")) }) {
+            Icon(Icons.Default.Download, stringResource(R.string.cd_import_plan))
+          }
+
           if (sortOrder != "Difficulty (Beginner-Advanced)" || filterDifficulty != "All") {
             IconButton(onClick = { viewModel.resetFilters() }) {
               Icon(Icons.Default.Clear, stringResource(R.string.cd_reset_filters))
@@ -95,7 +112,8 @@ fun TrainingListScreen(
             onStart = { onStartWorkout(summary.plan.id) },
             onFavorite = { viewModel.toggleFavorite(summary.plan) },
             onDelete = { viewModel.deletePlan(summary.plan) },
-            onCopy = { viewModel.copyPlan(summary.plan.id) }
+            onCopy = { viewModel.copyPlan(summary.plan.id) },
+            onShare = { viewModel.sharePlan(summary.plan.id) }
           )
         }
       }
@@ -183,7 +201,8 @@ fun TrainingPlanItem(
   onStart: () -> Unit,
   onFavorite: () -> Unit,
   onDelete: () -> Unit,
-  onCopy: () -> Unit
+  onCopy: () -> Unit,
+  onShare: () -> Unit
 ) {
   Card(
     modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
@@ -247,6 +266,9 @@ fun TrainingPlanItem(
         // Play Button
         IconButton(onClick = onStart) {
           Icon(Icons.Default.PlayArrow, "Start Workout", tint = MaterialTheme.colorScheme.primary)
+        }
+        IconButton(onClick = onShare) {
+          Icon(Icons.Default.Share, stringResource(R.string.cd_share_plan))
         }
         IconButton(onClick = onCopy) {
           Icon(Icons.Default.ContentCopy, stringResource(R.string.cd_copy))

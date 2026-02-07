@@ -1,9 +1,11 @@
 package com.syncrow.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(tableName = "users")
 data class User(
@@ -44,7 +46,8 @@ data class Workout(
   var avgPower: Int = 0,
   var avgHeartRate: Int = 0,
   val notes: String? = null,
-  val stravaActivityId: Long? = null
+  val stravaActivityId: Long? = null,
+  val activityType: String = ActivityType.ROWING.name
 )
 
 @Entity(
@@ -122,12 +125,15 @@ data class PersonalBest(
 @Entity(tableName = "training_plans")
 data class TrainingPlan(
   @PrimaryKey(autoGenerate = true) val id: Long = 0,
+  @ColumnInfo(defaultValue = "")
+  val globalId: String = UUID.randomUUID().toString(), // GUID for sync/dedup
   val name: String,
   val description: String,
   val difficulty: String, // Beginner, Intermediate, Advanced
   val intensity: String, // Easy, Medium, Hard
   val isFavorite: Boolean = false,
-  val createdAt: Long = System.currentTimeMillis()
+  val createdAt: Long = System.currentTimeMillis(),
+  val activityType: String = ActivityType.ROWING.name
 )
 
 @Entity(
@@ -161,6 +167,13 @@ enum class SegmentType {
 enum class DurationType {
   TIME,
   DISTANCE
+}
+
+enum class ActivityType {
+  ROWING,
+  CYCLING,
+  RUNNING,
+  ELLIPTICAL
 }
 
 @Entity(

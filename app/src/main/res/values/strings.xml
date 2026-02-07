@@ -186,4 +186,9 @@
     <string name="label_strava_settings">Strava</string>
     <string name="label_auto_upload">Auto-upload workouts</string>
     <string name="description_auto_upload">Automatically sync finished workouts to Strava.</string>
+
+    <!-- Share Plan -->
+    <string name="cd_share_plan">Share Plan</string>
+    <string name="cd_import_plan">Import Plan</string>
+    <string name="title_share_plan">Share Training Plan</string>
 </resources>
