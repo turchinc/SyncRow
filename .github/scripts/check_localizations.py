@@ -45,14 +45,16 @@ def generate_missing_strings_xml(missing: Dict[str, str]) -> str:
     if not missing:
         return ""
     
-    lines = ["<resources>"]
+    # Create a root element
+    root = ET.Element("resources")
     for name, value in missing.items():
-        # Escape XML special characters in the value
-        escaped_value = value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        lines.append(f'    <string name="{name}">{escaped_value}</string>')
-    lines.append("</resources>")
+        string_elem = ET.SubElement(root, "string")
+        string_elem.set("name", name)
+        string_elem.text = value
     
-    return "\n".join(lines)
+    # Convert to string with proper formatting
+    ET.indent(root, space='    ')
+    return ET.tostring(root, encoding='unicode', method='xml')
 
 
 def main():

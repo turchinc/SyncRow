@@ -124,8 +124,10 @@ The strings have been added with their **English values as placeholders**. Pleas
             '--head', branch_name
         ])
         print(f"   ✅ PR created successfully!")
-    except:
-        print(f"   ℹ️  PR might already exist or gh CLI not available")
+    except subprocess.CalledProcessError as e:
+        print(f"   ℹ️  Failed to create PR: {e}")
+    except Exception as e:
+        print(f"   ℹ️  Unexpected error creating PR: {e}")
     
     # Checkout main again
     run_command(['git', 'checkout', 'main'])

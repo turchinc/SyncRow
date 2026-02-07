@@ -40,7 +40,7 @@ jobs:
         id: check
         run: |
           chmod +x .github/scripts/check_localizations.py
-          python .github/scripts/check_localizations.py || echo "has_missing=true" >> $GITHUB_OUTPUT
+          python .github/scripts/check_localizations.py
         continue-on-error: true
       
       - name: Upload Results
