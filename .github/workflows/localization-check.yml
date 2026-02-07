@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "Checking for missing translations..."
           
-          PRIMARY_COUNT=$(grep -c '<string name=' app/src/main/res/values/strings.xml || echo 0)
+          PRIMARY_COUNT=$(grep -o '<string name=' app/src/main/res/values/strings.xml | wc -l || echo 0)
           echo "Primary (EN) has $PRIMARY_COUNT strings"
           
           MISSING_LOCALES=""
@@ -38,7 +38,7 @@ jobs:
           for locale in de es fr it; do
             LOCALE_FILE="app/src/main/res/values-$locale/strings.xml"
             if [ -f "$LOCALE_FILE" ]; then
-              LOCALE_COUNT=$(grep -c '<string name=' "$LOCALE_FILE" || echo 0)
+              LOCALE_COUNT=$(grep -o '<string name=' "$LOCALE_FILE" | wc -l || echo 0)
               echo "Locale $locale has $LOCALE_COUNT strings"
               
               if [ "$LOCALE_COUNT" -lt "$PRIMARY_COUNT" ]; then
@@ -98,7 +98,7 @@ jobs:
       
       - name: Summary
         run: |
-          echo "## Localization Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🌍 Localization Check Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ "${{ steps.check.outputs.has_missing }}" == "true" ]; then
