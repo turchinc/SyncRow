@@ -34,3 +34,6 @@ google-services.json
 *.hprof
 private/
 apk/
+
+# Localization check results
+localization_check_results.json

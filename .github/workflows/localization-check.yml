@@ -1,0 +1,87 @@
+name: Localization Check
+
+on:
+  # Run on pushes to main branch
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/src/main/res/values/strings.xml'
+      - 'app/src/main/res/values-*/strings.xml'
+  
+  # Run on a weekly schedule (every Monday at 9:00 AM UTC)
+  schedule:
+    - cron: '0 9 * * 1'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-localizations:
+    name: Check Missing Translations
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper branching
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Check for Missing Translations
+        id: check
+        run: |
+          chmod +x .github/scripts/check_localizations.py
+          python .github/scripts/check_localizations.py || echo "has_missing=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: localization-check-results
+          path: localization_check_results.json
+          retention-days: 30
+      
+      - name: Create PRs for Missing Translations
+        if: steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          chmod +x .github/scripts/create_localization_prs.py
+          python .github/scripts/create_localization_prs.py
+      
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f localization_check_results.json ]; then
+            echo "## 🌍 Localization Check Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            python3 - <<'EOF'
+          import json
+          from pathlib import Path
+          
+          with open('localization_check_results.json', 'r') as f:
+              results = json.load(f)
+          
+          print("| Locale | Status | Missing Strings |")
+          print("|--------|--------|-----------------|")
+          
+          for locale, data in sorted(results.items()):
+              count = data['missing_count']
+              if count == 0:
+                  status = "✅ Complete"
+              else:
+                  status = "⚠️ Missing"
+              print(f"| {locale.upper()} | {status} | {count} |")
+          EOF
+          fi >> $GITHUB_STEP_SUMMARY
