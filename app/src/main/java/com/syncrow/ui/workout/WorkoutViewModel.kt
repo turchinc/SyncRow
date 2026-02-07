@@ -102,7 +102,8 @@ class WorkoutViewModel(
 
   private val powerSmoother = DataSmoother(windowSize = 3)
   private val paceSmoother = DataSmoother(windowSize = 3)
-  private val heartRateSmoother = DataSmoother(windowSize = 5)
+  private val spmSmoother = DataSmoother(windowSize = 3)
+  private val heartRateSmoother = DataSmoother(windowSize = 3)
 
   private val _displayMetrics = MutableStateFlow(RowerMetrics(0, 0, 0, 0, 0))
   val displayMetrics: StateFlow<RowerMetrics> = _displayMetrics.asStateFlow()
@@ -850,11 +851,12 @@ class WorkoutViewModel(
           .collect { rawData ->
             val smoothedPower = powerSmoother.add(rawData.power.toDouble()).toInt()
             val smoothedPace = paceSmoother.add(rawData.pace.toDouble()).toInt()
+            val smoothedSpm = spmSmoother.add(rawData.strokeRate.toDouble()).toInt()
             _displayMetrics.value =
               _displayMetrics.value.copy(
                 power = smoothedPower,
                 pace = smoothedPace,
-                strokeRate = rawData.strokeRate,
+                strokeRate = smoothedSpm,
                 distance = rawData.distance
               )
           }

@@ -161,7 +161,7 @@ fun TrainingLayout(
     // Main Content Area
     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
       Column(
-        modifier = Modifier.align(Alignment.Center),
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         // Segment Label & Targets
@@ -236,15 +236,42 @@ fun TrainingLayout(
 
     // Bottom Metrics Row (Mini Dashboard)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-      MetricDisplay(label = "TIME", value = formatTime(elapsedSeconds), valueSize = 24.sp)
-      MetricDisplay(label = "DIST", value = "${metrics.distance}", valueSize = 24.sp)
-      MetricDisplay(label = "SPM", value = "${metrics.strokeRate}", valueSize = 24.sp)
-      MetricDisplay(label = "WATTS", value = "${metrics.power}", valueSize = 24.sp)
+      MetricDisplay(
+        label = "TIME",
+        value = formatTime(elapsedSeconds),
+        valueSize = 36.sp,
+        labelSize = 16.sp
+      )
+      MetricDisplay(
+        label = "DIST",
+        value = "${metrics.distance}",
+        valueSize = 36.sp,
+        labelSize = 16.sp
+      )
+      MetricDisplay(
+        label = "/500m",
+        value = formatPace(metrics.pace),
+        valueSize = 36.sp,
+        labelSize = 16.sp
+      )
+      MetricDisplay(
+        label = "SPM",
+        value = "${metrics.strokeRate}",
+        valueSize = 36.sp,
+        labelSize = 16.sp
+      )
+      MetricDisplay(
+        label = "WATTS",
+        value = "${metrics.power}",
+        valueSize = 36.sp,
+        labelSize = 16.sp
+      )
       MetricDisplay(
         label = "HR",
         value = "${metrics.heartRate}",
         color = Color.Red,
-        valueSize = 24.sp
+        valueSize = 36.sp,
+        labelSize = 16.sp
       )
     }
 

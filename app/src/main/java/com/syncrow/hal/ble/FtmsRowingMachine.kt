@@ -91,20 +91,18 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
     try {
       // 1. Stroke Rate (UINT8) & Stroke Count (UINT16)
-      // Presence: When bit 0 of b5 is 0
-      if ((b5 and 0x01) == 0) {
-        if (bytes.size >= offset + 3) {
-          // Value is stored as x2 (0.5 resolution)
-          strokeRate = (bytes[offset].toInt() and 0xFF) / 2
-          // Skip Stroke Count (2 bytes)
-          offset += 3
-        }
+      // These are mandatory base fields.
+      // Bit 0 is "More Data", not a presence flag for these fields.
+      if (bytes.size >= offset + 3) {
+        // Value is stored as x2 (0.5 resolution)
+        strokeRate = (bytes[offset].toInt() and 0xFF) / 2
+        // Skip Stroke Count (2 bytes)
+        offset += 3
       }
 
       // 2. Average Stroke Rate (UINT8)
       // Presence: Bit 1 of b5
       if ((b5 and 0x02) != 0) {
-        // Verified parser skips 1 byte.
         offset += 1
       }
 
@@ -117,7 +115,6 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
               ((bytes[offset + 1].toInt() and 0xFF) shl 8) or
               ((bytes[offset + 2].toInt() and 0xFF) shl 16)
 
-          // REVERTED: Do not divide by 10. Assume raw Meters.
           distance = rawDistance
           offset += 3
         }
