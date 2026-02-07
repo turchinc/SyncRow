@@ -1,87 +1,110 @@
 name: Localization Check
 
 on:
-  # Run on pushes to main branch
   push:
     branches:
       - main
     paths:
       - 'app/src/main/res/values/strings.xml'
       - 'app/src/main/res/values-*/strings.xml'
-  
-  # Run on a weekly schedule (every Monday at 9:00 AM UTC)
   schedule:
     - cron: '0 9 * * 1'
-  
-  # Allow manual trigger
   workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   check-localizations:
-    name: Check Missing Translations
+    name: Check and Translate Missing Strings
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for proper branching
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
       
       - name: Check for Missing Translations
         id: check
         run: |
-          chmod +x .github/scripts/check_localizations.py
-          python .github/scripts/check_localizations.py
-        continue-on-error: true
+          echo "Checking for missing translations..."
+          
+          PRIMARY_COUNT=$(grep -c '<string name=' app/src/main/res/values/strings.xml || echo 0)
+          echo "Primary (EN) has $PRIMARY_COUNT strings"
+          
+          MISSING_LOCALES=""
+          
+          for locale in de es fr it; do
+            LOCALE_FILE="app/src/main/res/values-$locale/strings.xml"
+            if [ -f "$LOCALE_FILE" ]; then
+              LOCALE_COUNT=$(grep -c '<string name=' "$LOCALE_FILE" || echo 0)
+              echo "Locale $locale has $LOCALE_COUNT strings"
+              
+              if [ "$LOCALE_COUNT" -lt "$PRIMARY_COUNT" ]; then
+                MISSING=$((PRIMARY_COUNT - LOCALE_COUNT))
+                echo "Locale $locale is missing $MISSING strings"
+                MISSING_LOCALES="$MISSING_LOCALES $locale"
+              else
+                echo "Locale $locale is complete"
+              fi
+            fi
+          done
+          
+          echo "missing_locales=$MISSING_LOCALES" >> $GITHUB_OUTPUT
+          
+          if [ -n "$MISSING_LOCALES" ]; then
+            echo "has_missing=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_missing=false" >> $GITHUB_OUTPUT
+          fi
       
-      - name: Upload Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: localization-check-results
-          path: localization_check_results.json
-          retention-days: 30
-      
-      - name: Create PRs for Missing Translations
-        if: steps.check.outcome == 'failure'
+      - name: Create Issues for Missing Translations
+        if: steps.check.outputs.has_missing == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          chmod +x .github/scripts/create_localization_prs.py
-          python .github/scripts/create_localization_prs.py
+          for locale in ${{ steps.check.outputs.missing_locales }}; do
+            EXISTING=$(gh issue list --label "localization" --label "${locale}" --state open --json number --jq '.[0].number' || echo "")
+            
+            if [ -z "$EXISTING" ]; then
+              echo "Creating issue for locale: $locale"
+              
+              LOCALE_UPPER=$(echo "$locale" | tr '[:lower:]' '[:upper:]')
+              
+              # Create issue body file
+              echo "## Missing Translation for ${LOCALE_UPPER}" > /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "Compare app/src/main/res/values/strings.xml with app/src/main/res/values-${locale}/strings.xml" >> /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "Task: Identify missing strings and create a PR with proper ${LOCALE_UPPER} translations." >> /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "Guidelines:" >> /tmp/issue.md
+              echo "- Use informal address (tu/du/tú)" >> /tmp/issue.md
+              echo "- Maintain consistent terminology" >> /tmp/issue.md
+              echo "- Keep placeholders intact" >> /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "@copilot Please handle this translation." >> /tmp/issue.md
+              
+              gh issue create \
+                --title "[i18n] Translate missing ${LOCALE_UPPER} strings" \
+                --label "localization" \
+                --label "${locale}" \
+                --body-file /tmp/issue.md
+            else
+              echo "Issue already exists for locale $locale (issue #$EXISTING)"
+            fi
+          done
       
       - name: Summary
-        if: always()
         run: |
-          if [ -f localization_check_results.json ]; then
-            echo "## 🌍 Localization Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Localization Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check.outputs.has_missing }}" == "true" ]; then
+            echo "Missing translations in: ${{ steps.check.outputs.missing_locales }}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            
-            python3 - <<'EOF'
-          import json
-          from pathlib import Path
-          
-          with open('localization_check_results.json', 'r') as f:
-              results = json.load(f)
-          
-          print("| Locale | Status | Missing Strings |")
-          print("|--------|--------|-----------------|")
-          
-          for locale, data in sorted(results.items()):
-              count = data['missing_count']
-              if count == 0:
-                  status = "✅ Complete"
-              else:
-                  status = "⚠️ Missing"
-              print(f"| {locale.upper()} | {status} | {count} |")
-          EOF
-          fi >> $GITHUB_STEP_SUMMARY
+            echo "Issues created and assigned to @copilot for translation." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "All localizations are complete!" >> $GITHUB_STEP_SUMMARY
+          fi
