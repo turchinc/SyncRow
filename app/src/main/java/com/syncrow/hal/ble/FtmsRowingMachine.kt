@@ -71,7 +71,7 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
   /**
    * Calculates Concept2-standard wattage from pace using the standard physics formula.
-   * Formula: Watts = 2.80 / (P^3), where P = pace in meters per second.
+   * Formula: Watts = 2.80 / (P^3), where P = pace in seconds per meter.
    *
    * @param paceSeconds Pace in seconds per 500m. Returns 0 if pace is 0 or invalid.
    * @return Calculated watts as Int.
@@ -79,12 +79,12 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
   private fun calculateConcept2Watts(paceSeconds: Int): Int {
     if (paceSeconds <= 0) return 0
 
-    // Convert split time to pace in meters per second
+    // Convert split time to pace in seconds per meter
     // P = seconds per 500m / 500 = seconds per meter
-    val paceMetersPerSecond = paceSeconds.toDouble() / 500.0
+    val secondsPerMeter = paceSeconds.toDouble() / 500.0
 
     // Apply Concept2 formula: Watts = 2.80 / (P^3)
-    val watts = 2.80 / (paceMetersPerSecond * paceMetersPerSecond * paceMetersPerSecond)
+    val watts = 2.80 / (secondsPerMeter * secondsPerMeter * secondsPerMeter)
 
     return watts.toInt()
   }
@@ -165,8 +165,10 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
       // Presence: Bit 5 of b5
       // NOTE: We skip the machine's reported wattage and calculate it from pace instead
       if ((b5 and 0x20) != 0) {
-        // Skip the machine's wattage value (still need to advance offset)
-        offset += 2
+        if (bytes.size >= offset + 2) {
+          // Skip the machine's wattage value (still need to advance offset)
+          offset += 2
+        }
       }
 
       // 7. Average Power (SINT16)
