@@ -20,6 +20,10 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
   private val ROWER_DATA_CHAR_UUID = UUID.fromString("00002ad1-0000-1000-8000-00805f9b34fb")
   private val CONTROL_POINT_CHAR_UUID = UUID.fromString("00002ad9-0000-1000-8000-00805f9b34fb")
 
+  // Concept2 wattage calculation constants
+  private val CONCEPT2_WATTS_CONSTANT = 2.80
+  private val METERS_PER_SPLIT = 500.0
+
   // State persistence
   private var lastMetrics = RowerMetrics(0, 0, 0, 0, 0)
 
@@ -82,10 +86,10 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
     // Convert split time to pace in seconds per meter
     // P = seconds per 500m / 500 = seconds per meter
-    val secondsPerMeter = paceSeconds.toDouble() / 500.0
+    val secondsPerMeter = paceSeconds.toDouble() / METERS_PER_SPLIT
 
     // Apply Concept2 formula: Watts = 2.80 / (P^3)
-    val watts = 2.80 / pow(secondsPerMeter, 3.0)
+    val watts = CONCEPT2_WATTS_CONSTANT / pow(secondsPerMeter, 3.0)
 
     return watts.toInt()
   }
