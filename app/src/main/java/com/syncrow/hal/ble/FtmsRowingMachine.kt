@@ -10,10 +10,17 @@ import com.syncrow.hal.RowerMetrics
 import io.reactivex.rxjava3.core.Observable
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.math.pow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.rx3.asFlow
 
 class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
+
+  companion object {
+    // Concept2 wattage calculation constants
+    private const val CONCEPT2_WATTS_CONSTANT = 2.80
+    private const val METERS_PER_SPLIT = 500.0
+  }
 
   private val FTMS_SERVICE_UUID = UUID.fromString("00001826-0000-1000-8000-00805f9b34fb")
   private val ROWER_DATA_CHAR_UUID = UUID.fromString("00002ad1-0000-1000-8000-00805f9b34fb")
@@ -70,8 +77,31 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
   }
 
   /**
+   * Calculates Concept2-standard wattage from pace using the standard physics formula.
+   * Formula: Watts = 2.80 / (P^3), where P = pace in seconds per meter.
+   *
+   * @param paceSeconds Pace in seconds per 500m. Returns 0 if pace is 0 or invalid.
+   * @return Calculated watts as Int.
+   */
+  private fun calculateConcept2Watts(paceSeconds: Int): Int {
+    if (paceSeconds <= 0) return 0
+
+    // Convert split time to pace in seconds per meter
+    // P = seconds per 500m / 500 = seconds per meter
+    val secondsPerMeter = paceSeconds.toDouble() / METERS_PER_SPLIT
+
+    // Apply Concept2 formula: Watts = 2.80 / (P^3)
+    val watts = CONCEPT2_WATTS_CONSTANT / secondsPerMeter.pow(3.0)
+
+    return watts.toInt()
+  }
+
+  /**
    * Parses Rowing Machine Data (0x2AD1) using the dynamic FTMS bit-flag specification. Adjusted
    * based on real-world feedback: Distance and Pace scaling removed.
+   *
+   * Note: Wattage is now calculated using Concept2 standard formula from pace data,
+   * instead of using the machine's reported wattage, for better accuracy and comparability.
    */
   private fun parseRowerData(bytes: ByteArray): RowerMetrics {
     if (bytes.size < 2) return lastMetrics
@@ -88,6 +118,7 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
     var pace = lastMetrics.pace
     var power = lastMetrics.power
     var heartRate = lastMetrics.heartRate
+    var paceUpdated = false
 
     try {
       // 1. Stroke Rate (UINT8) & Stroke Count (UINT16)
@@ -126,8 +157,11 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
         if (bytes.size >= offset + 2) {
           val rawPace =
             (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
-          // REVERTED: Do not divide by 2. Assume raw Seconds.
-          pace = if (rawPace == 0xFFFF) 0 else rawPace
+          // Only update pace if the value is valid (0xFFFF indicates invalid/no data)
+          if (rawPace != 0xFFFF) {
+            pace = rawPace
+            paceUpdated = true
+          }
           offset += 2
         }
       }
@@ -140,9 +174,10 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
       // 6. Instantaneous Power (SINT16)
       // Presence: Bit 5 of b5
+      // NOTE: We skip the machine's reported wattage and calculate it from pace instead
       if ((b5 and 0x20) != 0) {
         if (bytes.size >= offset + 2) {
-          power = (bytes[offset].toInt() and 0xFF) or (bytes[offset + 1].toInt() shl 8)
+          // Skip the machine's wattage value (still need to advance offset)
           offset += 2
         }
       }
@@ -186,6 +221,13 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
       // Presence: Bit 4 of b6 (0x10)
       if ((b6 and 0x10) != 0) {
         offset += 2
+      }
+
+      // Calculate Concept2-standard wattage from pace only if pace was present in this packet.
+      // If pace was not present, retain the power from lastMetrics (which was calculated from
+      // the last known pace). This ensures power and pace remain synchronized.
+      if (paceUpdated) {
+        power = calculateConcept2Watts(pace)
       }
 
       lastMetrics = RowerMetrics(power, pace, strokeRate, distance, heartRate)
