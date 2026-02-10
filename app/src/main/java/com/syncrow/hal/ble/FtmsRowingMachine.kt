@@ -70,8 +70,31 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
   }
 
   /**
+   * Calculates Concept2-standard wattage from pace using the standard physics formula.
+   * Formula: Watts = 2.80 / (P^3), where P = pace in meters per second.
+   *
+   * @param paceSeconds Pace in seconds per 500m. Returns 0 if pace is 0 or invalid.
+   * @return Calculated watts as Int.
+   */
+  private fun calculateConcept2Watts(paceSeconds: Int): Int {
+    if (paceSeconds <= 0) return 0
+
+    // Convert split time to pace in meters per second
+    // P = seconds per 500m / 500 = seconds per meter
+    val paceMetersPerSecond = paceSeconds.toDouble() / 500.0
+
+    // Apply Concept2 formula: Watts = 2.80 / (P^3)
+    val watts = 2.80 / (paceMetersPerSecond * paceMetersPerSecond * paceMetersPerSecond)
+
+    return watts.toInt()
+  }
+
+  /**
    * Parses Rowing Machine Data (0x2AD1) using the dynamic FTMS bit-flag specification. Adjusted
    * based on real-world feedback: Distance and Pace scaling removed.
+   *
+   * Note: Wattage is now calculated using Concept2 standard formula from pace data,
+   * instead of using the machine's reported wattage, for better accuracy and comparability.
    */
   private fun parseRowerData(bytes: ByteArray): RowerMetrics {
     if (bytes.size < 2) return lastMetrics
@@ -140,11 +163,10 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
       // 6. Instantaneous Power (SINT16)
       // Presence: Bit 5 of b5
+      // NOTE: We skip the machine's reported wattage and calculate it from pace instead
       if ((b5 and 0x20) != 0) {
-        if (bytes.size >= offset + 2) {
-          power = (bytes[offset].toInt() and 0xFF) or (bytes[offset + 1].toInt() shl 8)
-          offset += 2
-        }
+        // Skip the machine's wattage value (still need to advance offset)
+        offset += 2
       }
 
       // 7. Average Power (SINT16)
@@ -187,6 +209,9 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
       if ((b6 and 0x10) != 0) {
         offset += 2
       }
+
+      // Calculate Concept2-standard wattage from pace
+      power = calculateConcept2Watts(pace)
 
       lastMetrics = RowerMetrics(power, pace, strokeRate, distance, heartRate)
     } catch (e: Exception) {
