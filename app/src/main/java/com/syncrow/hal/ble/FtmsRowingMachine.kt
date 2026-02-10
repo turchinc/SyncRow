@@ -111,6 +111,7 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
     var pace = lastMetrics.pace
     var power = lastMetrics.power
     var heartRate = lastMetrics.heartRate
+    var paceUpdated = false
 
     try {
       // 1. Stroke Rate (UINT8) & Stroke Count (UINT16)
@@ -145,7 +146,6 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
       // 4. Instantaneous Pace (UINT16)
       // Presence: Bit 3 of b5
-      var paceUpdated = false
       if ((b5 and 0x08) != 0) {
         if (bytes.size >= offset + 2) {
           val rawPace =
@@ -214,8 +214,9 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
         offset += 2
       }
 
-      // Calculate Concept2-standard wattage from pace only if pace was present in this packet
-      // If pace was not present, keep the power from the last metrics
+      // Calculate Concept2-standard wattage from pace only if pace was present in this packet.
+      // If pace was not present, retain the power from lastMetrics (which was calculated from
+      // the last known pace). This ensures power and pace remain synchronized.
       if (paceUpdated) {
         power = calculateConcept2Watts(pace)
       }
