@@ -10,6 +10,7 @@ import com.syncrow.hal.RowerMetrics
 import io.reactivex.rxjava3.core.Observable
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.math.pow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.rx3.asFlow
 
@@ -84,7 +85,7 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
     val secondsPerMeter = paceSeconds.toDouble() / 500.0
 
     // Apply Concept2 formula: Watts = 2.80 / (P^3)
-    val watts = 2.80 / (secondsPerMeter * secondsPerMeter * secondsPerMeter)
+    val watts = 2.80 / pow(secondsPerMeter, 3.0)
 
     return watts.toInt()
   }
