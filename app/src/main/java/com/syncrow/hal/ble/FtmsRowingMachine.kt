@@ -91,7 +91,7 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
     val secondsPerMeter = paceSeconds.toDouble() / METERS_PER_SPLIT
 
     // Apply Concept2 formula: Watts = 2.80 / (P^3)
-    val watts = CONCEPT2_WATTS_CONSTANT / pow(secondsPerMeter, 3.0)
+    val watts = CONCEPT2_WATTS_CONSTANT / secondsPerMeter.pow(3.0)
 
     return watts.toInt()
   }
@@ -157,9 +157,11 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
         if (bytes.size >= offset + 2) {
           val rawPace =
             (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
-          // REVERTED: Do not divide by 2. Assume raw Seconds.
-          pace = if (rawPace == 0xFFFF) 0 else rawPace
-          paceUpdated = true
+          // Only update pace if the value is valid (0xFFFF indicates invalid/no data)
+          if (rawPace != 0xFFFF) {
+            pace = rawPace
+            paceUpdated = true
+          }
           offset += 2
         }
       }
