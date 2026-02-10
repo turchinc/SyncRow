@@ -145,12 +145,14 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
       // 4. Instantaneous Pace (UINT16)
       // Presence: Bit 3 of b5
+      var paceUpdated = false
       if ((b5 and 0x08) != 0) {
         if (bytes.size >= offset + 2) {
           val rawPace =
             (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
           // REVERTED: Do not divide by 2. Assume raw Seconds.
           pace = if (rawPace == 0xFFFF) 0 else rawPace
+          paceUpdated = true
           offset += 2
         }
       }
@@ -212,8 +214,11 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
         offset += 2
       }
 
-      // Calculate Concept2-standard wattage from pace
-      power = calculateConcept2Watts(pace)
+      // Calculate Concept2-standard wattage from pace only if pace was present in this packet
+      // If pace was not present, keep the power from the last metrics
+      if (paceUpdated) {
+        power = calculateConcept2Watts(pace)
+      }
 
       lastMetrics = RowerMetrics(power, pace, strokeRate, distance, heartRate)
     } catch (e: Exception) {
