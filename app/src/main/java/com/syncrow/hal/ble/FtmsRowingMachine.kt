@@ -16,13 +16,15 @@ import kotlinx.coroutines.rx3.asFlow
 
 class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
+  companion object {
+    // Concept2 wattage calculation constants
+    private const val CONCEPT2_WATTS_CONSTANT = 2.80
+    private const val METERS_PER_SPLIT = 500.0
+  }
+
   private val FTMS_SERVICE_UUID = UUID.fromString("00001826-0000-1000-8000-00805f9b34fb")
   private val ROWER_DATA_CHAR_UUID = UUID.fromString("00002ad1-0000-1000-8000-00805f9b34fb")
   private val CONTROL_POINT_CHAR_UUID = UUID.fromString("00002ad9-0000-1000-8000-00805f9b34fb")
-
-  // Concept2 wattage calculation constants
-  private val CONCEPT2_WATTS_CONSTANT = 2.80
-  private val METERS_PER_SPLIT = 500.0
 
   // State persistence
   private var lastMetrics = RowerMetrics(0, 0, 0, 0, 0)
