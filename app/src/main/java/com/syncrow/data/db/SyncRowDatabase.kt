@@ -20,7 +20,7 @@ import java.util.UUID
       TrainingBlock::class,
       TrainingSegment::class
     ],
-  version = 11,
+  version = 12,
   exportSchema = false
 )
 abstract class SyncRowDatabase : RoomDatabase() {

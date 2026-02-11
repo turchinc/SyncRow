@@ -35,6 +35,19 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="syncrow" android:host="strava-auth" />
             </intent-filter>
+
+            <!-- Intent filter for opening shared training plan files -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
 
         <provider

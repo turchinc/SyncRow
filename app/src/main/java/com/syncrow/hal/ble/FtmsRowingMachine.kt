@@ -77,8 +77,8 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
   }
 
   /**
-   * Calculates Concept2-standard wattage from pace using the standard physics formula.
-   * Formula: Watts = 2.80 / (P^3), where P = pace in seconds per meter.
+   * Calculates Concept2-standard wattage from pace using the standard physics formula. Formula:
+   * Watts = 2.80 / (P^3), where P = pace in seconds per meter.
    *
    * @param paceSeconds Pace in seconds per 500m. Returns 0 if pace is 0 or invalid.
    * @return Calculated watts as Int.
@@ -100,8 +100,8 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
    * Parses Rowing Machine Data (0x2AD1) using the dynamic FTMS bit-flag specification. Adjusted
    * based on real-world feedback: Distance and Pace scaling removed.
    *
-   * Note: Wattage is now calculated using Concept2 standard formula from pace data,
-   * instead of using the machine's reported wattage, for better accuracy and comparability.
+   * Note: Wattage is now calculated using Concept2 standard formula from pace data, instead of
+   * using the machine's reported wattage, for better accuracy and comparability.
    */
   private fun parseRowerData(bytes: ByteArray): RowerMetrics {
     if (bytes.size < 2) return lastMetrics

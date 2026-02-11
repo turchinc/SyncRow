@@ -119,18 +119,47 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun handleIntent(intent: Intent?) {
-    intent?.data?.let { uri ->
-      Log.d("SyncRow", "Received Intent URI: $uri")
-      // Handle both custom scheme and legacy http://localhost
-      if (
-        (uri.scheme == "syncrow" && uri.host == "strava-auth") ||
-          (uri.scheme == "http" && uri.host == "localhost")
-      ) {
-        val code = uri.getQueryParameter("code")
-        if (code != null) {
-          Log.d("SyncRow", "Found Auth Code: $code")
+    intent?.let {
+      // Handle file URIs (for shared training plans)
+      if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
+        val uri = intent.data
+        Log.d("SyncRow", "Received Intent URI: $uri")
+
+        // Check if it's a Strava auth callback
+        if (
+          (uri?.scheme == "syncrow" && uri.host == "strava-auth") ||
+            (uri?.scheme == "http" && uri.host == "localhost")
+        ) {
+          val code = uri.getQueryParameter("code")
+          if (code != null) {
+            Log.d("SyncRow", "Found Auth Code: $code")
+            if (::viewModel.isInitialized) {
+              viewModel.completeStravaAuth(code)
+            }
+          }
+        }
+        // Check if it's a training plan file
+        else if (uri != null) {
+          Log.d("SyncRow", "Attempting to import training plan from: $uri")
           if (::viewModel.isInitialized) {
-            viewModel.completeStravaAuth(code)
+            viewModel.importTrainingPlanFromUri(uri)
+          }
+        }
+      }
+      // Legacy handling for data URIs without ACTION_VIEW
+      else if (intent.data != null) {
+        val uri = intent.data
+        Log.d("SyncRow", "Received Intent URI: $uri")
+        if (
+          (uri?.scheme == "syncrow" && uri.host == "strava-auth") ||
+            (uri?.scheme == "http" && uri.host == "localhost")
+        ) {
+          val code = uri.getQueryParameter("code")
+          if (code != null) {
+            Log.d("SyncRow", "Found Auth Code: $code")
+            if (::viewModel.isInitialized) {
+              viewModel.completeStravaAuth(code)
+            }
           }
         }
       }

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.net.Uri
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
@@ -22,6 +23,7 @@ import com.syncrow.hal.RowerMetrics
 import com.syncrow.hal.ble.BleHeartRateMonitor
 import com.syncrow.hal.ble.FtmsRowingMachine
 import com.syncrow.util.DataSmoother
+import com.syncrow.util.PlanExchange
 import java.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -99,6 +101,7 @@ class WorkoutViewModel(
 
   private val rowingMachine: IRowingMachine = FtmsRowingMachine(rxBleClient)
   private val heartRateMonitor: IHeartRateMonitor = BleHeartRateMonitor(rxBleClient)
+  private val planExchange = PlanExchange(application, trainingDao)
 
   private val powerSmoother = DataSmoother(windowSize = 3)
   private val paceSmoother = DataSmoother(windowSize = 3)
@@ -954,6 +957,19 @@ class WorkoutViewModel(
         _toastEvent.emit(ToastEvent.Resource(R.string.strava_sync_success))
       } else {
         _toastEvent.emit(ToastEvent.Resource(R.string.strava_sync_error))
+      }
+    }
+  }
+
+  fun importTrainingPlanFromUri(uri: Uri) {
+    viewModelScope.launch {
+      val newPlanId = planExchange.importPlan(uri)
+      if (newPlanId != null) {
+        _toastEvent.emit(ToastEvent.String("Training plan imported successfully!"))
+      } else {
+        _toastEvent.emit(
+          ToastEvent.String("Failed to import training plan. Please check the file format.")
+        )
       }
     }
   }
