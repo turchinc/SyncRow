@@ -35,7 +35,10 @@ class SyncRowApplication : Application() {
       Log.w("SyncRowApp", "Undeliverable exception received: ${throwable.message}")
     }
 
-    // Initialize Firebase and configure Firestore for European data residency
+    // Initialize Firebase with offline persistence enabled
+    // Note: Data residency (europe-west3) is configured during Firebase project setup in the
+    // console
+    // See docs/Firebase-Setup.md for details
     FirebaseApp.initializeApp(this)
     val firestore = FirebaseFirestore.getInstance()
     val settings =
