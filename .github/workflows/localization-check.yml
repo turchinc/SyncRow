@@ -82,7 +82,7 @@ jobs:
               echo "Guidelines:" >> /tmp/issue.md
               echo "- The SOURCE structure and terms are authoritative. Changes are only allowed in TARGET." >> /tmp/issue.md
               echo "- The TARGET XML file must be well-formed and the format \`<string name=\"key\">localized content</string>\` must be maintained per line." >> /tmp/issue.md
-              echo "- When complete, TARGET should have the same number of lines as SOURCE." >> /tmp/issue.md
+              echo "- XML comments and name attributes are not to be translated. When complete, TARGET should have the same number of lines as SOURCE." >> /tmp/issue.md
               echo "- Use informal address (tu/du/tú)" >> /tmp/issue.md
               echo "- Maintain consistent terminology and keep changes to existing localizations to a minimum" >> /tmp/issue.md
               echo "- Keep placeholders intact" >> /tmp/issue.md
