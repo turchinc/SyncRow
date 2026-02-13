@@ -1,0 +1,113 @@
+name: Localization Check
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/src/main/res/values/strings.xml'
+      - 'app/src/main/res/values-*/strings.xml'
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-localizations:
+    name: Check and Translate Missing Strings
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Check for Missing Translations
+        id: check
+        run: |
+          echo "Checking for missing translations..."
+          
+          PRIMARY_COUNT=$(grep -o '<string name=' app/src/main/res/values/strings.xml | wc -l || echo 0)
+          echo "Primary (EN) has $PRIMARY_COUNT strings"
+          
+          MISSING_LOCALES=""
+          
+          for locale in de es fr it; do
+            LOCALE_FILE="app/src/main/res/values-$locale/strings.xml"
+            if [ -f "$LOCALE_FILE" ]; then
+              LOCALE_COUNT=$(grep -o '<string name=' "$LOCALE_FILE" | wc -l || echo 0)
+              echo "Locale $locale has $LOCALE_COUNT strings"
+              
+              if [ "$LOCALE_COUNT" -lt "$PRIMARY_COUNT" ]; then
+                MISSING=$((PRIMARY_COUNT - LOCALE_COUNT))
+                echo "Locale $locale is missing $MISSING strings"
+                MISSING_LOCALES="$MISSING_LOCALES $locale"
+              else
+                echo "Locale $locale is complete"
+              fi
+            fi
+          done
+          
+          echo "missing_locales=$MISSING_LOCALES" >> $GITHUB_OUTPUT
+          
+          if [ -n "$MISSING_LOCALES" ]; then
+            echo "has_missing=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_missing=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Issues for Missing Translations
+        if: steps.check.outputs.has_missing == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for locale in ${{ steps.check.outputs.missing_locales }}; do
+            EXISTING=$(gh issue list --label "localization" --label "${locale}" --state open --json number --jq '.[0].number' || echo "")
+            
+            if [ -z "$EXISTING" ]; then
+              echo "Creating issue for locale: $locale"
+              
+              LOCALE_UPPER=$(echo "$locale" | tr '[:lower:]' '[:upper:]')
+              
+              # Create issue body file
+              echo "## Missing Translation for ${LOCALE_UPPER}" > /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "Compare the resource file app/src/main/res/values/strings.xml (SOURCE) with app/src/main/res/values-${locale}/strings.xml (TARGET)" >> /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "Task: Identify missing strings and create a PR with proper ${LOCALE_UPPER} translations." >> /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "Guidelines:" >> /tmp/issue.md
+              echo "- The SOURCE structure and terms are authoritative. Changes are only allowed in TARGET." >> /tmp/issue.md
+              echo "- The TARGET XML file must be well-formed and the format \`<string name=\"key\">localized content</string>\` must be maintained per line." >> /tmp/issue.md
+              echo "- When complete, TARGET should have the same number of lines as SOURCE." >> /tmp/issue.md
+              echo "- Use informal address (tu/du/tú)" >> /tmp/issue.md
+              echo "- Maintain consistent terminology and keep changes to existing localizations to a minimum" >> /tmp/issue.md
+              echo "- Keep placeholders intact" >> /tmp/issue.md
+              echo "" >> /tmp/issue.md
+              echo "@copilot Please handle this translation." >> /tmp/issue.md
+              
+              gh issue create \
+                --title "[i18n] Translate missing ${LOCALE_UPPER} strings" \
+                --label "localization" \
+                --label "${locale}" \
+                --body-file /tmp/issue.md
+            else
+              echo "Issue already exists for locale $locale (issue #$EXISTING)"
+            fi
+          done
+      
+      - name: Summary
+        run: |
+          echo "## 🌍 Localization Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check.outputs.has_missing }}" == "true" ]; then
+            echo "Missing translations in: ${{ steps.check.outputs.missing_locales }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Issues created and assigned to @copilot for translation." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "All localizations are complete!" >> $GITHUB_STEP_SUMMARY
+          fi
