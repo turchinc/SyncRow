@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">SyncRow</string>
-    <string name="btn_just_row">VOGA</string>
+    <string name="btn_just_row">REMA</string>
     <string name="btn_history">CRONOLOGIA</string>
     <string name="btn_training">ALLENAMENTO</string>
-    <string name="btn_hardware">HARDWARE</string>
+    <string name="btn_hardware">DISPOSITIVI</string>
     <string name="btn_profile">PROFILO</string>
     <string name="btn_quit">ESCI</string>
     <string name="btn_about">INFO</string>
@@ -11,18 +11,18 @@
     <string name="loading">Caricamento...</string>
 
     <string name="dialog_end_workout_title">Termina allenamento</string>
-    <string name="dialog_end_workout_message">Vuoi salvare questa sessione nella cronologia?</string>
+    <string name="dialog_end_workout_message">Vuoi salvare questa sessione nella tua cronologia?</string>
     <string name="btn_save">SALVA</string>
     <string name="btn_discard">SCARTA</string>
-    <string name="btn_start">AVVIA</string>
+    <string name="btn_start">INIZIA</string>
     <string name="btn_pause">PAUSA</string>
     <string name="btn_stop">STOP</string>
     <string name="btn_resume">RIPRENDI</string>
-    <string name="btn_split">GIRO</string>
+    <string name="btn_split">SPLIT</string>
 
-    <string name="label_pace">PASSO 500m</string>
+    <string name="label_pace">ANDATURA /500m</string>
     <string name="label_power_watts">POTENZA (W)</string>
-    <string name="label_stroke_rate">COLPI</string>
+    <string name="label_stroke_rate">CADENZA</string>
     <string name="label_distance_meters">DISTANZA (M)</string>
     <string name="label_heart_rate">FREQUENZA CARDIACA</string>
     <string name="label_power">POTENZA</string>
@@ -30,24 +30,24 @@
     <string name="label_dist">DIST</string>
     <string name="label_hr">FC</string>
 
-    <string name="selection_count">%1$d selezionati</string>
+    <string name="selection_count">%1$d selezionato/i</string>
     <string name="cd_cancel_selection">Annulla selezione</string>
     <string name="cd_back">Indietro</string>
     <string name="cd_delete_selected">Elimina selezionati</string>
-    <string name="label_no_workouts">Nessun allenamento registrato. Inizia a vogare!</string>
-    <string name="label_avg_power_format">%1$dW medio</string>
+    <string name="label_no_workouts">Nessun allenamento registrato. Inizia a remare!</string>
+    <string name="label_avg_power_format">%1$dW medi</string>
 
     <string name="title_hardware_setup">Configurazione hardware</string>
-    <string name="btn_rescan">RITENTA</string>
-    <string name="discovery_description">Seleziona il tuo vogatore e il cardiofrequenzimetro. Questo assicura che l\'app utilizzi il parser dati corretto.</string>
-    <string name="discovery_no_devices">Nessun hardware compatibile trovato. Tira la maniglia del vogatore e assicurati che il monitor FC sia acceso.</string>
+    <string name="btn_rescan">SCANSIONA</string>
+    <string name="discovery_description">Seleziona il tuo vogatore e il tuo cardiofrequenzimetro. Questo assicura che l\'app utilizzi i dati corretti.</string>
+    <string name="discovery_no_devices">Nessun hardware compatibile trovato. Tira l\'impugnatura del vogatore e assicurati che il cardiofrequenzimetro sia acceso.</string>
     <string name="cd_selected">Selezionato</string>
 
     <string name="title_user_profiles">Profili utente</string>
     <string name="cd_add_profile">Aggiungi profilo</string>
     <string name="label_active_profile">Profilo attivo</string>
     <string name="cd_edit_profile">Modifica profilo</string>
-    <string name="label_strava_connected">Connesso a Strava</string>
+    <string name="label_strava_connected">Collegato a Strava</string>
     <string name="label_strava_synced">Sincronizzato con Strava</string>
     <string name="label_switch_profile">Cambia profilo</string>
     <string name="label_years_format">%1$d anni</string>
@@ -62,16 +62,15 @@
     <string name="gender_male">Maschio</string>
     <string name="gender_female">Femmina</string>
     <string name="gender_other">Altro</string>
-    <string name="btn_connect_strava">CONNETTI STRAVA</string>
-    <string name="btn_disconnect_strava">DISCONNETTI STRAVA</string>
+    <string name="btn_connect_strava">COLLEGA STRAVA</string>
+    <string name="btn_disconnect_strava">SCOLLEGA STRAVA</string>
     <string name="btn_sync_strava">SINCRONIZZA CON STRAVA</string>
-    <string name="strava_connected_success">Connesso a Strava con successo!</string>
-    <string name="strava_disconnected_success">Strava disconnesso.</string>
-    <string name="strava_connection_error">Connessione a Strava fallita.</string>
+    <string name="strava_connected_success">Collegato a Strava con successo!</string>
+    <string name="strava_disconnected_success">Strava scollegato.</string>
+    <string name="strava_connection_error">Impossibile collegarsi a Strava.</string>
     <string name="strava_syncing">Sincronizzazione con Strava...</string>
     <string name="strava_sync_success">Allenamento sincronizzato con Strava!</string>
-    <string name="strava_sync_error">Sincronizzazione con Strava fallita.</string>
-    <string name="error_strava_credentials_missing">ID Client Strava non configurato in local.properties</string>
+    <string name="strava_sync_error">Impossibile sincronizzare con Strava.</string>
 
     <string name="dialog_delete_workout_title">Elimina allenamento</string>
     <string name="dialog_delete_workout_message">Sei sicuro di voler eliminare questo allenamento? Questa azione non può essere annullata.</string>
@@ -94,76 +93,20 @@
     <string name="lang_es">Spagnolo</string>
     <string name="lang_it">Italiano</string>
 
-    <string name="error_bluetooth_disabled">Il Bluetooth è disattivato. Per favore attivalo.</string>
-    <string name="error_no_rower_selected">Nessun vogatore connesso. Seleziona prima l\'hardware.</string>
-    <string name="error_rower_connection_failed">Errore di connessione al vogatore: %1$s</string>
+    <!-- Theme -->
+    <string name="label_theme">Tema</string>
+    <string name="theme_system">Predefinito di sistema</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
 
-    <!-- About Screen -->
-    <string name="title_about">Info su SyncRow</string>
-    <string name="about_description">SyncRow è un\'app leggera e open-source per vogatori Android progettata per colmare il divario tra l\'hardware di voga indoor e le moderne piattaforme di fitness come Strava. Niente abbonamenti, niente pubblicità, solo dati.</string>
-    <string name="btn_visit_homepage">VISITA HOMEPAGE</string>
-    <string name="btn_visit_github">VEDI SU GITHUB</string>
-    <string name="label_version">Versione %1$s</string>
+    <!-- Profile Connected Apps -->
+    <string name="section_connected_apps">App collegate</string>
+    <string name="label_strava_settings">Strava</string>
+    <string name="label_auto_upload">Caricamento automatico</string>
+    <string name="description_auto_upload">Sincronizza automaticamente gli allenamenti terminati con Strava.</string>
 
-    <!-- Training Feature -->
-    <string name="title_training_plans">Piani di allenamento</string>
-    <string name="title_create_plan">Crea piano</string>
-    <string name="title_edit_plan">Modifica piano</string>
-    <string name="cd_create_plan">Crea piano</string>
-    <string name="cd_sort">Ordina</string>
-    <string name="cd_filter">Filtra</string>
-    <string name="cd_reset_filters">Reimposta filtri</string>
-    <string name="cd_favorite">Preferito</string>
-    <string name="cd_copy">Copia</string>
-    <string name="cd_delete">Elimina</string>
-    <string name="cd_remove_block">Rimuovi blocco</string>
-    <string name="cd_remove_segment">Rimuovi segmento</string>
-    <string name="cd_add_target">Aggiungi obiettivo</string>
-    <string name="cd_remove_target">Rimuovi obiettivo</string>
-    <string name="label_no_plans">Nessun piano di allenamento corrisponde al filtro.</string>
-    <string name="label_plan_name">Nome piano</string>
-    <string name="label_description">Descrizione</string>
-    <string name="label_difficulty">Difficoltà</string>
-    <string name="label_intensity">Intensità</string>
-    <string name="label_block_name">Nome blocco</string>
-    <string name="label_repeats">Ripetizioni</string>
-    <string name="label_segments">Segmenti</string>
-    <string name="label_targets">Obiettivi</string>
-    <string name="label_meters">Metri</string>
-    <string name="label_duration">Durata</string>
-    <string name="label_min">min</string>
-    <string name="label_sec">sec</string>
-    <string name="label_set_duration">Imposta durata</string>
-    <string name="btn_add_block">Aggiungi blocco</string>
-    <string name="btn_add_segment">Aggiungi segmento</string>
-    <string name="btn_add_target">Aggiungi obiettivo</string>
-    <string name="btn_save_plan">Salva</string>
-    <string name="btn_ok">OK</string>
-    <string name="btn_cancel_dialog">Annulla</string>
-    <string name="target_spm">Cadenza (colpi/min)</string>
-    <string name="target_watts">Potenza (Watt)</string>
-    <string name="target_hr">Freq. Cardiaca</string>
-    <string name="target_pace">Passo (/500m)</string>
-    <string name="filter_all">Tutti</string>
-    <string name="filter_favorites">Preferiti</string>
-    <string name="difficulty_beginner">Principiante</string>
-    <string name="difficulty_intermediate">Intermedio</string>
-    <string name="difficulty_advanced">Avanzato</string>
-    <string name="intensity_low">Bassa</string>
-    <string name="intensity_medium">Media</string>
-    <string name="intensity_hard">Alta</string>
-    <string name="sort_difficulty_asc">Difficoltà (Princ.-Avanz.)</string>
-    <string name="sort_difficulty_desc">Difficoltà (Avanz.-Princ.)</string>
-    <string name="sort_name">Nome</string>
-    <string name="sort_intensity">Intensità</string>
-    <string name="sort_date">Data di creazione</string>
-    <string name="sort_duration_desc">Durata totale (più lunga)</string>
-    <string name="sort_duration_asc">Durata totale (più corta)</string>
-    <string name="block_title">Blocco %1$d</string>
-    <string name="segment_type_active">Attivo</string>
-    <string name="segment_type_recovery">Recupero</string>
-    <string name="segment_type_warmup">Riscaldamento</string>
-    <string name="segment_type_cooldown">Defaticamento</string>
-    <string name="duration_type_time">Tempo</string>
-    <string name="duration_type_distance">Distanza</string>
+    <!-- Cloud Sync -->
+    <string name="label_cloud_sync_settings">Backup e sincronizzazione cloud</string>
+    <string name="label_cloud_sync">Sincronizza il tuo profilo sul cloud</string>
+    <string name="description_cloud_sync">Esegui il backup del tuo profilo e dei tuoi allenamenti in modo sicuro sul cloud per sincronizzarli tra i tuoi dispositivi.</string>
 </resources>

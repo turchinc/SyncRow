@@ -191,4 +191,14 @@
     <string name="cd_share_plan">Share Plan</string>
     <string name="cd_import_plan">Import Plan</string>
     <string name="title_share_plan">Share Training Plan</string>
+
+    <!-- Cloud Sync -->
+    <string name="label_cloud_sync_settings">Cloud Backup &amp; Sync</string>
+    <string name="label_cloud_sync">Sync profile to cloud</string>
+    <string name="description_cloud_sync">Backup your profile and workouts securely to the cloud to sync across devices.</string>
+    <string name="btn_sign_in_google">Sign in with Google</string>
+    <string name="label_sync_mode">Sync Mode</string>
+    <string name="sync_mode_anon">Cloud Backup (This device only)</string>
+    <string name="sync_mode_google">Cross-device Sync (Google Account)</string>
+    <string name="description_sync_mode">Anonymous sync keeps data backed up for this app install. Google sync allows sharing your history across your Pixel, Tablet, and other devices.</string>
 </resources>

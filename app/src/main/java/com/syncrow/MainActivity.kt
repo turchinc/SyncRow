@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     val rxBleClient = app.rxBleClient
     val db = app.database
     val stravaRepository = app.stravaRepository
+    val cloudSyncManager = app.cloudSyncManager
 
     setContent {
       val context = LocalContext.current
@@ -72,7 +73,8 @@ class MainActivity : AppCompatActivity() {
               db.metricPointDao(),
               db.splitDao(),
               db.trainingDao(),
-              stravaRepository
+              stravaRepository,
+              cloudSyncManager
             )
         )
 

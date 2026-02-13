@@ -11,10 +11,14 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.polidea.rxandroidble3.RxBleClient
 import com.polidea.rxandroidble3.exceptions.BleScanException
 import com.polidea.rxandroidble3.scan.ScanSettings
 import com.syncrow.R
+import com.syncrow.data.CloudSyncManager
 import com.syncrow.data.StravaRepository
 import com.syncrow.data.db.*
 import com.syncrow.hal.IHeartRateMonitor
@@ -33,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx3.asFlow
+import kotlinx.coroutines.tasks.await
 
 enum class SessionState {
   IDLE,
@@ -88,7 +93,8 @@ class WorkoutViewModel(
   private val metricPointDao: MetricPointDao,
   private val splitDao: SplitDao,
   private val trainingDao: TrainingDao,
-  private val stravaRepository: StravaRepository
+  private val stravaRepository: StravaRepository,
+  private val cloudSyncManager: CloudSyncManager
 ) : AndroidViewModel(application) {
 
   private val prefs = application.getSharedPreferences("syncrow_prefs", Context.MODE_PRIVATE)
@@ -149,6 +155,9 @@ class WorkoutViewModel(
 
   private val _toastEvent = MutableSharedFlow<ToastEvent>()
   val toastEvent = _toastEvent.asSharedFlow()
+
+  private val _isCloudPermanent = MutableStateFlow(false)
+  val isCloudPermanent: StateFlow<Boolean> = _isCloudPermanent.asStateFlow()
 
   private val toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
   private var textToSpeech: TextToSpeech? = null
@@ -397,6 +406,17 @@ class WorkoutViewModel(
       // Load saved devices for this user
       _selectedRowerAddress.value = prefs.getString("$KEY_ROWER_PREFIX${u.id}", null)
       _selectedHrmAddress.value = prefs.getString("$KEY_HRM_PREFIX${u.id}", null)
+
+      // Trigger cloud sync check and automatic restore if enabled
+      viewModelScope.launch {
+        cloudSyncManager.updateSyncStatus(u)
+        val auth = FirebaseAuth.getInstance()
+        _isCloudPermanent.value = auth.currentUser != null && !auth.currentUser!!.isAnonymous
+
+        if (u.cloudSyncEnabled) {
+          restoreFromCloud(u)
+        }
+      }
     }
   }
 
@@ -410,9 +430,65 @@ class WorkoutViewModel(
   }
 
   fun updateCurrentUser(user: User) {
+    val oldSyncEnabled = _currentUser.value?.cloudSyncEnabled ?: false
     viewModelScope.launch {
-      userDao.updateUser(user)
-      setCurrentUserInternal(user)
+      userDao.updateUser(user.copy(lastUpdated = System.currentTimeMillis()))
+      setCurrentUserInternal(userDao.getUserById(user.id))
+
+      // If sync was just enabled, trigger a restore
+      if (user.cloudSyncEnabled && !oldSyncEnabled) {
+        restoreFromCloud(user)
+      }
+    }
+  }
+
+  private suspend fun restoreFromCloud(user: User) {
+    _toastEvent.emit(ToastEvent.String("Checking for cloud data..."))
+    val success = cloudSyncManager.pullAndRestoreData(user)
+    if (success) {
+      _toastEvent.emit(ToastEvent.String("Cloud data restored successfully!"))
+      // Reload current user in case the profile was updated
+      _currentUser.value = userDao.getUserById(user.id)
+    }
+  }
+
+  fun linkWithGoogle(idToken: String) {
+    val user = _currentUser.value ?: return
+    viewModelScope.launch {
+      try {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        val firebaseAuth = FirebaseAuth.getInstance()
+        val currentUser = firebaseAuth.currentUser
+
+        val authResultUser =
+          if (currentUser != null && currentUser.isAnonymous) {
+            try {
+              currentUser.linkWithCredential(credential).await().user
+            } catch (e: FirebaseAuthUserCollisionException) {
+              // Account already exists with this Google credential.
+              // Sign in to it instead to "import" that cloud data.
+              firebaseAuth.signInWithCredential(credential).await().user
+            }
+          } else {
+            firebaseAuth.signInWithCredential(credential).await().user
+          }
+
+        val newUid = authResultUser?.uid
+        if (newUid != null) {
+          val updatedUser =
+            user.copy(firebaseUid = newUid, lastUpdated = System.currentTimeMillis())
+          userDao.updateUser(updatedUser)
+          _currentUser.value = updatedUser
+          _isCloudPermanent.value = true
+          _toastEvent.emit(ToastEvent.String("Account synced with Google!"))
+          // Trigger a full sync/restore after linking
+          restoreFromCloud(updatedUser)
+          cloudSyncManager.updateSyncStatus(updatedUser)
+        }
+      } catch (e: Exception) {
+        Log.e("WorkoutViewModel", "Linking failed", e)
+        _toastEvent.emit(ToastEvent.String("Failed to link account: ${e.message}"))
+      }
     }
   }
 
@@ -787,9 +863,7 @@ class WorkoutViewModel(
             // Auto-upload
             val currentUser = _currentUser.value
             if (
-              currentUser != null &&
-                currentUser.autoUploadToStrava &&
-                currentUser.stravaToken != null
+              currentUser != null && currentUser.cloudSyncEnabled && currentUser.stravaToken != null
             ) {
               syncWorkoutToStrava(workoutId)
             }
@@ -982,7 +1056,8 @@ class WorkoutViewModel(
     private val metricPointDao: MetricPointDao,
     private val splitDao: SplitDao,
     private val trainingDao: TrainingDao,
-    private val stravaRepository: StravaRepository
+    private val stravaRepository: StravaRepository,
+    private val cloudSyncManager: CloudSyncManager
   ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
@@ -994,7 +1069,8 @@ class WorkoutViewModel(
         metricPointDao,
         splitDao,
         trainingDao,
-        stravaRepository
+        stravaRepository,
+        cloudSyncManager
       )
         as T
   }

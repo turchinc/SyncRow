@@ -29,6 +29,9 @@ interface WorkoutDao {
 
   @Query("SELECT * FROM workouts WHERE id = :workoutId")
   suspend fun getWorkoutById(workoutId: Long): Workout?
+
+  @Query("SELECT * FROM workouts WHERE globalId = :globalId LIMIT 1")
+  suspend fun getWorkoutByGlobalId(globalId: String): Workout?
 }
 
 @Dao
@@ -82,6 +85,9 @@ interface TrainingDao {
 
   @Query("SELECT * FROM training_plans WHERE id = :planId")
   suspend fun getPlanByIdSync(planId: Long): TrainingPlan?
+
+  @Query("SELECT * FROM training_plans WHERE globalId = :globalId LIMIT 1")
+  suspend fun getPlanByGlobalId(globalId: String): TrainingPlan?
 
   @Query("SELECT * FROM training_plans WHERE isFavorite = 1 ORDER BY createdAt DESC")
   fun getFavoriteTrainingPlans(): Flow<List<TrainingPlan>>

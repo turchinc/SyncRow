@@ -20,7 +20,7 @@ import java.util.UUID
       TrainingBlock::class,
       TrainingSegment::class
     ],
-  version = 12,
+  version = 14,
   exportSchema = false
 )
 abstract class SyncRowDatabase : RoomDatabase() {
@@ -72,6 +72,48 @@ abstract class SyncRowDatabase : RoomDatabase() {
         }
       }
 
+    val MIGRATION_12_13 =
+      object : Migration(12, 13) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+          database.execSQL(
+            "ALTER TABLE users ADD COLUMN cloudSyncEnabled INTEGER NOT NULL DEFAULT 0"
+          )
+          database.execSQL("ALTER TABLE users ADD COLUMN firebaseUid TEXT")
+        }
+      }
+
+    val MIGRATION_13_14 =
+      object : Migration(13, 14) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+          // User changes
+          database.execSQL(
+            "ALTER TABLE users ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()}"
+          )
+
+          // Workout changes
+          database.execSQL("ALTER TABLE workouts ADD COLUMN globalId TEXT NOT NULL DEFAULT ''")
+          val cursorWorkouts = database.query("SELECT id FROM workouts")
+          while (cursorWorkouts.moveToNext()) {
+            val id = cursorWorkouts.getLong(0)
+            val uuid = UUID.randomUUID().toString()
+            database.execSQL("UPDATE workouts SET globalId = '$uuid' WHERE id = $id")
+          }
+          cursorWorkouts.close()
+
+          // PB changes
+          database.execSQL(
+            "ALTER TABLE personal_bests ADD COLUMN globalId TEXT NOT NULL DEFAULT ''"
+          )
+          val cursorPb = database.query("SELECT id FROM personal_bests")
+          while (cursorPb.moveToNext()) {
+            val id = cursorPb.getLong(0)
+            val uuid = UUID.randomUUID().toString()
+            database.execSQL("UPDATE personal_bests SET globalId = '$uuid' WHERE id = $id")
+          }
+          cursorPb.close()
+        }
+      }
+
     fun getDatabase(context: Context): SyncRowDatabase {
       return INSTANCE
         ?: synchronized(this) {
@@ -81,8 +123,7 @@ abstract class SyncRowDatabase : RoomDatabase() {
                 SyncRowDatabase::class.java,
                 "syncrow_database"
               )
-              .addMigrations(MIGRATION_9_10, MIGRATION_10_11)
-              .fallbackToDestructiveMigration()
+              .addMigrations(MIGRATION_9_10, MIGRATION_10_11, MIGRATION_12_13, MIGRATION_13_14)
               .build()
           INSTANCE = instance
           instance

@@ -20,7 +20,10 @@ data class User(
   val stravaTokenExpiresAt: Long? = null,
   val autoUploadToStrava: Boolean = false,
   val languageCode: String = "en",
-  val themeMode: String = "SYSTEM" // SYSTEM, LIGHT, DARK
+  val themeMode: String = "SYSTEM", // SYSTEM, LIGHT, DARK
+  val cloudSyncEnabled: Boolean = false,
+  val firebaseUid: String? = null,
+  val lastUpdated: Long = System.currentTimeMillis()
 )
 
 @Entity(
@@ -39,6 +42,7 @@ data class User(
 data class Workout(
   @PrimaryKey(autoGenerate = true) val id: Long = 0,
   val userId: Long,
+  val globalId: String = UUID.randomUUID().toString(),
   val startTime: Long, // Epoch millis
   var endTime: Long? = null,
   var totalDistanceMeters: Int = 0,
@@ -117,6 +121,7 @@ data class WorkoutSplit(
 data class PersonalBest(
   @PrimaryKey(autoGenerate = true) val id: Long = 0,
   val userId: Long,
+  val globalId: String = UUID.randomUUID().toString(),
   val distanceCategory: String, // e.g., "500m", "2000m", "5000m", "30min"
   val bestValue: Double, // Time in seconds or distance in meters
   val date: Long

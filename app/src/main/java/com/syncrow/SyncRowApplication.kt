@@ -3,6 +3,7 @@ package com.syncrow
 import android.app.Application
 import android.util.Log
 import com.polidea.rxandroidble3.RxBleClient
+import com.syncrow.data.CloudSyncManager
 import com.syncrow.data.StravaRepository
 import com.syncrow.data.api.StravaApi
 import com.syncrow.data.db.SyncRowDatabase
@@ -18,6 +19,9 @@ class SyncRowApplication : Application() {
     private set
 
   lateinit var stravaRepository: StravaRepository
+    private set
+
+  lateinit var cloudSyncManager: CloudSyncManager
     private set
 
   override fun onCreate() {
@@ -39,5 +43,12 @@ class SyncRowApplication : Application() {
     val stravaApi = retrofit.create(StravaApi::class.java)
 
     stravaRepository = StravaRepository(this, stravaApi, database.userDao(), database.workoutDao())
+    cloudSyncManager =
+      CloudSyncManager(
+        database.userDao(),
+        database.workoutDao(),
+        database.trainingDao(),
+        database.splitDao()
+      )
   }
 }
