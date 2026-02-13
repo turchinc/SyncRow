@@ -7,7 +7,6 @@ import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,7 +94,6 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: (Long?) -> Unit) {
           onClick = {
             viewModel.finishWorkout(save = true)
             showSaveDialog = false
-            // onFinish is now handled by the LaunchedEffect
           }
         ) {
           Text(stringResource(R.string.btn_save))
@@ -117,7 +116,6 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: (Long?) -> Unit) {
             onClick = {
               viewModel.finishWorkout(save = false)
               showSaveDialog = false
-              // onFinish is now handled by the LaunchedEffect
             }
           ) {
             Text(stringResource(R.string.btn_discard), color = MaterialTheme.colorScheme.error)
@@ -137,147 +135,222 @@ fun TrainingLayout(
   viewModel: WorkoutViewModel,
   onStop: () -> Unit
 ) {
-  Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-    // Header
+  val configuration = LocalConfiguration.current
+  val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+  Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)) {
+    // 1. Header Row
     Row(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically
     ) {
       Text(
-        trainingState.planName,
+        text = trainingState.planName,
+        style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontSize = 14.sp
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.weight(1f)
       )
       Text(
-        "Segment ${trainingState.currentSegmentIndex + 1}/${trainingState.totalSegments}",
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontSize = 14.sp
+        text = "Segment ${trainingState.currentSegmentIndex + 1}/${trainingState.totalSegments}",
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
       )
     }
 
-    Spacer(modifier = Modifier.height(8.dp))
-
-    // Main Content Area
+    // 2. Flexible Content Area
     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-      Column(
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-      ) {
-        // Segment Label & Targets
-        Text(
-          text = trainingState.currentSegment?.label ?: "",
-          color = MaterialTheme.colorScheme.onBackground,
-          fontSize = 24.sp,
-          fontWeight = FontWeight.Bold
-        )
-        Text(
-          text = trainingState.currentSegment?.targets ?: "",
-          color = MaterialTheme.colorScheme.secondary,
-          fontSize = 32.sp,
-          fontWeight = FontWeight.Bold,
-          textAlign = TextAlign.Center
-        )
+      if (isLandscape) {
+        // Landscape: Side-by-Side to prevent crushing vertical space
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+          // Left Side: Current Segment Info & Large Timer
+          Column(
+            modifier = Modifier.weight(1.1f).fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+          ) {
+            Text(
+              text = trainingState.currentSegment?.label ?: "",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              textAlign = TextAlign.Center
+            )
+            Text(
+              text = trainingState.currentSegment?.targets ?: "",
+              style = MaterialTheme.typography.titleLarge,
+              color = MaterialTheme.colorScheme.secondary,
+              fontWeight = FontWeight.Black,
+              textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(4.dp))
+            TrainingTimer(trainingState, fontSize = 60.sp)
+          }
 
-        Spacer(modifier = Modifier.height(24.dp))
+          // Right Side: Dashboard Metrics Grid
+          Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
+            MetricsGrid(
+              metrics = metrics,
+              elapsedSeconds = elapsedSeconds,
+              valueSize = 32.sp,
+              labelSize = 12.sp,
+              spacing = 4.dp
+            )
+          }
+        }
+      } else {
+        // Portrait: Stacked view
+        Column(
+          modifier = Modifier.fillMaxSize(),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+              text = trainingState.currentSegment?.label ?: "",
+              style = MaterialTheme.typography.headlineSmall,
+              fontWeight = FontWeight.Bold,
+              textAlign = TextAlign.Center
+            )
+            Text(
+              text = trainingState.currentSegment?.targets ?: "",
+              style = MaterialTheme.typography.headlineLarge,
+              color = MaterialTheme.colorScheme.secondary,
+              fontWeight = FontWeight.Black,
+              textAlign = TextAlign.Center
+            )
+          }
 
-        // Countdown
-        if (trainingState.currentSegment?.durationType == "TIME") {
-          Text(
-            text = formatTime(trainingState.segmentTimeRemaining),
-            color =
-              if (trainingState.segmentTimeRemaining <= 5) MaterialTheme.colorScheme.error
-              else MaterialTheme.colorScheme.primary,
-            fontSize = 100.sp,
-            fontWeight = FontWeight.Black
+          TrainingTimer(trainingState, fontSize = 90.sp)
+
+          MetricsGrid(
+            metrics = metrics,
+            elapsedSeconds = elapsedSeconds,
+            valueSize = 42.sp,
+            labelSize = 14.sp,
+            spacing = 12.dp
           )
-          Text("REMAINING", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
-        } else {
-          Text(
-            text = "${trainingState.segmentDistanceRemaining}m",
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 80.sp,
-            fontWeight = FontWeight.Black
-          )
-          Text("REMAINING", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
         }
       }
     }
 
-    // Next Segment Preview
-    if (trainingState.nextSegment != null) {
-      Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-      ) {
-        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-          Text(
-            "NEXT:",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(end = 8.dp)
-          )
+    // 3. Footer Area (Safe from overlap)
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+      // Next Preview
+      Box(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+        if (trainingState.nextSegment != null) {
           Column {
             Text(
-              text = trainingState.nextSegment.label,
-              color = MaterialTheme.colorScheme.onSurface,
-              fontWeight = FontWeight.Bold
+              text = "NEXT: ${trainingState.nextSegment.label}",
+              style = MaterialTheme.typography.labelLarge,
+              fontWeight = FontWeight.Bold,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis
             )
             Text(
               text = trainingState.nextSegment.targets,
+              style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
-              fontSize = 12.sp
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis
             )
           }
         }
       }
+      // Action Buttons
+      SessionControls(sessionState, viewModel, onStop)
     }
+  }
+}
 
-    // Bottom Metrics Row (Mini Dashboard)
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+@Composable
+fun TrainingTimer(trainingState: TrainingSessionState, fontSize: TextUnit) {
+  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    val isTime = trainingState.currentSegment?.durationType == "TIME"
+    val remainingValue =
+      if (isTime) formatTime(trainingState.segmentTimeRemaining)
+      else "${trainingState.segmentDistanceRemaining}m"
+
+    Text(
+      text = remainingValue,
+      style = MaterialTheme.typography.displayLarge,
+      fontSize = fontSize,
+      fontWeight = FontWeight.Black,
+      color =
+        if (isTime && trainingState.segmentTimeRemaining <= 5) MaterialTheme.colorScheme.error
+        else MaterialTheme.colorScheme.primary
+    )
+    Text(
+      text = "REMAINING",
+      style = MaterialTheme.typography.labelSmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+  }
+}
+
+@Composable
+fun MetricsGrid(
+  metrics: RowerMetrics,
+  elapsedSeconds: Int,
+  valueSize: TextUnit,
+  labelSize: TextUnit,
+  spacing: androidx.compose.ui.unit.Dp
+) {
+  Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing)) {
+    Row(modifier = Modifier.fillMaxWidth()) {
       MetricDisplay(
-        label = "TIME",
-        value = formatTime(elapsedSeconds),
-        valueSize = 36.sp,
-        labelSize = 16.sp
+        "TIME",
+        formatTime(elapsedSeconds),
+        modifier = Modifier.weight(1f),
+        valueSize = valueSize,
+        labelSize = labelSize
       )
       MetricDisplay(
-        label = "DIST",
-        value = "${metrics.distance}",
-        valueSize = 36.sp,
-        labelSize = 16.sp
+        "DIST",
+        "${metrics.distance}",
+        modifier = Modifier.weight(1f),
+        valueSize = valueSize,
+        labelSize = labelSize
+      )
+    }
+    Row(modifier = Modifier.fillMaxWidth()) {
+      MetricDisplay(
+        "/500m",
+        formatPace(metrics.pace),
+        modifier = Modifier.weight(1f),
+        valueSize = valueSize,
+        labelSize = labelSize
       )
       MetricDisplay(
-        label = "/500m",
-        value = formatPace(metrics.pace),
-        valueSize = 36.sp,
-        labelSize = 16.sp
+        "SPM",
+        "${metrics.strokeRate}",
+        modifier = Modifier.weight(1f),
+        valueSize = valueSize,
+        labelSize = labelSize
+      )
+    }
+    Row(modifier = Modifier.fillMaxWidth()) {
+      MetricDisplay(
+        "WATTS",
+        "${metrics.power}",
+        modifier = Modifier.weight(1f),
+        valueSize = valueSize,
+        labelSize = labelSize
       )
       MetricDisplay(
-        label = "SPM",
-        value = "${metrics.strokeRate}",
-        valueSize = 36.sp,
-        labelSize = 16.sp
-      )
-      MetricDisplay(
-        label = "WATTS",
-        value = "${metrics.power}",
-        valueSize = 36.sp,
-        labelSize = 16.sp
-      )
-      MetricDisplay(
-        label = "HR",
-        value = "${metrics.heartRate}",
+        "HR",
+        "${metrics.heartRate}",
+        modifier = Modifier.weight(1f),
         color = Color.Red,
-        valueSize = 36.sp,
-        labelSize = 16.sp
+        valueSize = valueSize,
+        labelSize = labelSize
       )
     }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    SessionControls(sessionState, viewModel, onStop)
   }
 }
 
@@ -315,13 +388,13 @@ fun PortraitLayout(
   ) {
     Text(
       text = stringResource(R.string.btn_just_row),
-      color = Color(0xFF00C853), // Keep green for brand/status
+      color = Color(0xFF00C853),
       fontSize = 16.sp,
       fontWeight = FontWeight.ExtraBold
     )
     Text(
       text = formatTime(elapsedSeconds),
-      color = MaterialTheme.colorScheme.primary, // Used to be Yellow
+      color = MaterialTheme.colorScheme.primary,
       fontSize = 48.sp,
       fontWeight = FontWeight.Bold
     )
@@ -429,40 +502,27 @@ fun LandscapeLayout(
 fun SessionControls(sessionState: SessionState, viewModel: WorkoutViewModel, onStop: () -> Unit) {
   val trainingState by viewModel.trainingState.collectAsState()
 
-  Row(
-    horizontalArrangement = Arrangement.Center,
-    verticalAlignment = Alignment.CenterVertically,
-    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
-  ) {
+  Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
     when (sessionState) {
       SessionState.IDLE -> {
-        Button(onClick = { viewModel.startWorkout() }) { Text(stringResource(R.string.btn_start)) }
+        Button(
+          onClick = { viewModel.startWorkout() },
+          contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+          Text(stringResource(R.string.btn_start))
+        }
       }
-      SessionState.COUNTDOWN -> {
-        // Controls hidden during countdown
-      }
+      SessionState.COUNTDOWN -> {}
       SessionState.ROWING -> {
         Button(onClick = { viewModel.pauseWorkout() }) { Text(stringResource(R.string.btn_pause)) }
         Spacer(modifier = Modifier.width(8.dp))
-
         if (trainingState.isActive) {
-          OutlinedButton(
-            onClick = { viewModel.skipSegment() },
-            colors =
-              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
-          ) {
-            Text("SKIP") // TODO: Localize
-          }
+          OutlinedButton(onClick = { viewModel.skipSegment() }) { Text("SKIP") }
         } else {
-          OutlinedButton(
-            onClick = { viewModel.markSplit() },
-            colors =
-              ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
-          ) {
+          OutlinedButton(onClick = { viewModel.markSplit() }) {
             Text(stringResource(R.string.btn_split))
           }
         }
-
         Spacer(modifier = Modifier.width(8.dp))
         Button(
           onClick = onStop,
@@ -489,23 +549,26 @@ fun SessionControls(sessionState: SessionState, viewModel: WorkoutViewModel, onS
 fun MetricDisplay(
   label: String,
   value: String,
+  modifier: Modifier = Modifier,
   isPrimary: Boolean = false,
-  color: Color = MaterialTheme.colorScheme.onBackground, // Default to OnBackground
+  color: Color = MaterialTheme.colorScheme.onBackground,
   valueSize: TextUnit? = null,
   labelSize: TextUnit? = null
 ) {
-  Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(4.dp)) {
+  Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(2.dp)) {
     Text(
       text = label,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       fontSize = labelSize ?: if (isPrimary) 14.sp else 12.sp,
-      fontWeight = FontWeight.Bold
+      fontWeight = FontWeight.Bold,
+      maxLines = 1
     )
     Text(
       text = value,
       color = color,
       fontSize = valueSize ?: if (isPrimary) 60.sp else 30.sp,
-      fontWeight = FontWeight.Black
+      fontWeight = FontWeight.Black,
+      maxLines = 1
     )
   }
 }
