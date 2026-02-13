@@ -95,9 +95,19 @@ This document provides a detailed checklist of the project's status, broken down
   - [x] Segment countdown timers (Time/Distance) and overall progress.
   - [x] Audible cues (beeps and TTS) for countdowns and segment changes.
   - [x] Automatic split generation for each completed segment.
-- [ ] Usability improvements
+- [x] **Usability improvements**
   - [x] implement light and dark modes
   - [x] add profile setting "auto-save to strava"
+- [x] **Cloud Backup & Sync**
+  - [x] Firebase/Firestore integration for cloud storage
+  - [x] European data residency (europe-west3)
+  - [x] Anonymous authentication for device-only backup
+  - [x] Google Sign-In for cross-device sync
+  - [x] Automatic profile and workout sync
+  - [x] Training plan cloud backup
+  - [x] Security rules enforcing user data privacy
+  - [x] Safe schema versioning with `syncVersion` field
+  - [x] Graceful restore with default values for older schemas
   
 - [ ] **Advanced Analysis**
 - [ ] when a workout is saved, and it was associated with a training, the association should be retained so that we can later implement our "personal best" and "training ghost" feature.

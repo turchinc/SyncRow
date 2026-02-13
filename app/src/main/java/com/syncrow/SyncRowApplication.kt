@@ -2,6 +2,9 @@ package com.syncrow
 
 import android.app.Application
 import android.util.Log
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.polidea.rxandroidble3.RxBleClient
 import com.syncrow.data.CloudSyncManager
 import com.syncrow.data.StravaRepository
@@ -31,6 +34,15 @@ class SyncRowApplication : Application() {
     RxJavaPlugins.setErrorHandler { throwable ->
       Log.w("SyncRowApp", "Undeliverable exception received: ${throwable.message}")
     }
+
+    // Initialize Firebase and configure Firestore for European data residency
+    FirebaseApp.initializeApp(this)
+    val firestore = FirebaseFirestore.getInstance()
+    val settings =
+      FirebaseFirestoreSettings.Builder()
+        .setPersistenceEnabled(true) // Enable offline persistence
+        .build()
+    firestore.firestoreSettings = settings
 
     rxBleClient = RxBleClient.create(this)
     database = SyncRowDatabase.getDatabase(this)
