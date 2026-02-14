@@ -20,7 +20,7 @@ import java.util.UUID
       TrainingBlock::class,
       TrainingSegment::class
     ],
-  version = 14,
+  version = 15,
   exportSchema = false
 )
 abstract class SyncRowDatabase : RoomDatabase() {
@@ -36,6 +36,29 @@ abstract class SyncRowDatabase : RoomDatabase() {
 
   companion object {
     @Volatile private var INSTANCE: SyncRowDatabase? = null
+
+    val MIGRATION_14_15 =
+      object : Migration(14, 15) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+          // 1. Add lastUpdated to training_plans
+          // SQLite does not allow non-constant defaults in ALTER TABLE ADD COLUMN
+          database.execSQL(
+            "ALTER TABLE training_plans ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0"
+          )
+          database.execSQL("UPDATE training_plans SET lastUpdated = (strftime('%s','now') * 1000)")
+
+          // 2. Create unique indices for globalId to prevent duplication during sync/import
+          database.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS index_workouts_globalId ON workouts(globalId)"
+          )
+          database.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS index_training_plans_globalId ON training_plans(globalId)"
+          )
+          database.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS index_personal_bests_globalId ON personal_bests(globalId)"
+          )
+        }
+      }
 
     val MIGRATION_9_10 =
       object : Migration(9, 10) {
@@ -54,14 +77,10 @@ abstract class SyncRowDatabase : RoomDatabase() {
     val MIGRATION_10_11 =
       object : Migration(10, 11) {
         override fun migrate(database: SupportSQLiteDatabase) {
-          // 1. Add 'globalId' column as TEXT NOT NULL DEFAULT ''.
-          // We use DEFAULT '' to satisfy NOT NULL constraint on existing rows and match Room schema
-          // expectation.
           database.execSQL(
             "ALTER TABLE training_plans ADD COLUMN globalId TEXT NOT NULL DEFAULT ''"
           )
 
-          // 2. Populate existing rows with random UUIDs
           val cursor = database.query("SELECT id FROM training_plans")
           while (cursor.moveToNext()) {
             val id = cursor.getLong(0)
@@ -85,12 +104,10 @@ abstract class SyncRowDatabase : RoomDatabase() {
     val MIGRATION_13_14 =
       object : Migration(13, 14) {
         override fun migrate(database: SupportSQLiteDatabase) {
-          // User changes
-          database.execSQL(
-            "ALTER TABLE users ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()}"
-          )
+          // SQLite does not allow non-constant defaults in ALTER TABLE ADD COLUMN
+          database.execSQL("ALTER TABLE users ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+          database.execSQL("UPDATE users SET lastUpdated = (strftime('%s','now') * 1000)")
 
-          // Workout changes
           database.execSQL("ALTER TABLE workouts ADD COLUMN globalId TEXT NOT NULL DEFAULT ''")
           val cursorWorkouts = database.query("SELECT id FROM workouts")
           while (cursorWorkouts.moveToNext()) {
@@ -100,7 +117,6 @@ abstract class SyncRowDatabase : RoomDatabase() {
           }
           cursorWorkouts.close()
 
-          // PB changes
           database.execSQL(
             "ALTER TABLE personal_bests ADD COLUMN globalId TEXT NOT NULL DEFAULT ''"
           )
@@ -123,7 +139,13 @@ abstract class SyncRowDatabase : RoomDatabase() {
                 SyncRowDatabase::class.java,
                 "syncrow_database"
               )
-              .addMigrations(MIGRATION_9_10, MIGRATION_10_11, MIGRATION_12_13, MIGRATION_13_14)
+              .addMigrations(
+                MIGRATION_9_10,
+                MIGRATION_10_11,
+                MIGRATION_12_13,
+                MIGRATION_13_14,
+                MIGRATION_14_15
+              )
               .build()
           INSTANCE = instance
           instance

@@ -93,6 +93,9 @@
     <string name="lang_es">Spanisch</string>
     <string name="lang_it">Italienisch</string>
 
+    <string name="dialog_delete_plan_title">Trainingsplan löschen</string>
+    <string name="dialog_delete_plan_message">Bist du sicher, dass du diesen Trainingsplan löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+
     <!-- Theme -->
     <string name="label_theme">Design</string>
     <string name="theme_system">Systemstandard</string>

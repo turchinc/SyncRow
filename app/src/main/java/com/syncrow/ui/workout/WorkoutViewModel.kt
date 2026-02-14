@@ -397,7 +397,7 @@ class WorkoutViewModel(
     }
   }
 
-  private fun setCurrentUserInternal(user: User?) {
+  private fun setCurrentUserInternal(user: User?, forceRestore: Boolean = false) {
     _currentUser.value = user
     user?.let { u ->
       prefs.edit { putLong(KEY_LAST_USER_ID, u.id) }
@@ -411,9 +411,9 @@ class WorkoutViewModel(
       viewModelScope.launch {
         cloudSyncManager.updateSyncStatus(u)
         val auth = FirebaseAuth.getInstance()
-        _isCloudPermanent.value = auth.currentUser != null && !auth.currentUser!!.isAnonymous
+        _isCloudPermanent.value = auth.currentUser?.let { !it.isAnonymous } ?: false
 
-        if (u.cloudSyncEnabled) {
+        if (forceRestore && u.cloudSyncEnabled) {
           restoreFromCloud(u)
         }
       }
@@ -433,12 +433,9 @@ class WorkoutViewModel(
     val oldSyncEnabled = _currentUser.value?.cloudSyncEnabled ?: false
     viewModelScope.launch {
       userDao.updateUser(user.copy(lastUpdated = System.currentTimeMillis()))
-      setCurrentUserInternal(userDao.getUserById(user.id))
-
-      // If sync was just enabled, trigger a restore
-      if (user.cloudSyncEnabled && !oldSyncEnabled) {
-        restoreFromCloud(user)
-      }
+      val updated = userDao.getUserById(user.id)
+      val shouldRestore = user.cloudSyncEnabled && !oldSyncEnabled
+      setCurrentUserInternal(updated, forceRestore = shouldRestore)
     }
   }
 
@@ -493,8 +490,7 @@ class WorkoutViewModel(
   }
 
   fun switchUser(user: User) {
-    setCurrentUserInternal(user)
-    // No need to clear addresses manually; setCurrentUserInternal loads the new user's saved ones
+    setCurrentUserInternal(user, forceRestore = user.cloudSyncEnabled)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -863,7 +859,9 @@ class WorkoutViewModel(
             // Auto-upload
             val currentUser = _currentUser.value
             if (
-              currentUser != null && currentUser.cloudSyncEnabled && currentUser.stravaToken != null
+              currentUser != null &&
+                currentUser.autoUploadToStrava &&
+                currentUser.stravaToken != null
             ) {
               syncWorkoutToStrava(workoutId)
             }

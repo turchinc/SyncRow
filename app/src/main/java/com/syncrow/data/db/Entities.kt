@@ -37,7 +37,7 @@ data class User(
         onDelete = ForeignKey.CASCADE
       )
     ],
-  indices = [Index("userId")]
+  indices = [Index("userId"), Index(value = ["globalId"], unique = true)]
 )
 data class Workout(
   @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -116,7 +116,7 @@ data class WorkoutSplit(
         onDelete = ForeignKey.CASCADE
       )
     ],
-  indices = [Index("userId")]
+  indices = [Index("userId"), Index(value = ["globalId"], unique = true)]
 )
 data class PersonalBest(
   @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -127,7 +127,7 @@ data class PersonalBest(
   val date: Long
 )
 
-@Entity(tableName = "training_plans")
+@Entity(tableName = "training_plans", indices = [Index(value = ["globalId"], unique = true)])
 data class TrainingPlan(
   @PrimaryKey(autoGenerate = true) val id: Long = 0,
   @ColumnInfo(defaultValue = "")
@@ -138,7 +138,8 @@ data class TrainingPlan(
   val intensity: String, // Easy, Medium, Hard
   val isFavorite: Boolean = false,
   val createdAt: Long = System.currentTimeMillis(),
-  val activityType: String = ActivityType.ROWING.name
+  val activityType: String = ActivityType.ROWING.name,
+  val lastUpdated: Long = System.currentTimeMillis()
 )
 
 @Entity(

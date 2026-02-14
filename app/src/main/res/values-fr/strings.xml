@@ -93,6 +93,9 @@
     <string name="lang_es">Espagnol</string>
     <string name="lang_it">Italien</string>
 
+    <string name="dialog_delete_plan_title">Supprimer le plan d\'entraînement</string>
+    <string name="dialog_delete_plan_message">Es-tu sûr de vouloir supprimer ce plan d\'entraînement ? Cette action ne peut pas être annulée.</string>
+
     <!-- Theme -->
     <string name="label_theme">Thème</string>
     <string name="theme_system">Par défaut</string>

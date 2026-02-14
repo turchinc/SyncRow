@@ -24,7 +24,7 @@
     <string name="label_power_watts">POTENZA (W)</string>
     <string name="label_stroke_rate">CADENZA</string>
     <string name="label_distance_meters">DISTANZA (M)</string>
-    <string name="label_heart_rate">FREQUENZA CARDIACA</string>
+    <string name="label_heart_rate">FRECUENZA CARDIACA</string>
     <string name="label_power">POTENZA</string>
     <string name="label_stroke">COLPI</string>
     <string name="label_dist">DIST</string>
@@ -92,6 +92,9 @@
     <string name="lang_de">Tedesco</string>
     <string name="lang_es">Spagnolo</string>
     <string name="lang_it">Italiano</string>
+
+    <string name="dialog_delete_plan_title">Elimina piano di allenamento</string>
+    <string name="dialog_delete_plan_message">Sei sicuro di voler eliminare questo piano di allenamento? Questa azione non può essere annullata.</string>
 
     <!-- Theme -->
     <string name="label_theme">Tema</string>

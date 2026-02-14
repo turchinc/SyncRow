@@ -93,6 +93,9 @@
     <string name="lang_es">Español</string>
     <string name="lang_it">Italiano</string>
 
+    <string name="dialog_delete_plan_title">Eliminar plan de entrenamiento</string>
+    <string name="dialog_delete_plan_message">¿Estás seguro de que quieres eliminar este plan de entrenamiento? Esta acción no se puede deshacer.</string>
+
     <!-- Theme -->
     <string name="label_theme">Tema</string>
     <string name="theme_system">Predeterminado del sistema</string>

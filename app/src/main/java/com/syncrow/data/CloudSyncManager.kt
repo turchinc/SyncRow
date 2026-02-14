@@ -24,7 +24,8 @@ class CloudSyncManager(
     if (user.cloudSyncEnabled) {
       ensureAuthenticated(user)
       syncProfile(user)
-      syncAllData(user)
+      pullAndRestoreData(user) // Pull latest from cloud
+      syncAllData(user) // Push local changes to cloud
     }
   }
 
@@ -73,89 +74,107 @@ class CloudSyncManager(
     val uid = auth.currentUser?.uid ?: return
 
     // Sync Workouts (with Splits)
-    val workouts = workoutDao.getWorkoutsForUser(user.id).first()
-    workouts.forEach { workout ->
-      val splits = splitDao.getSplitsForWorkoutSync(workout.id)
-      val workoutData =
-        hashMapOf(
-          "syncVersion" to SYNC_VERSION,
-          "globalId" to workout.globalId,
-          "startTime" to workout.startTime,
-          "endTime" to workout.endTime,
-          "totalDistanceMeters" to workout.totalDistanceMeters,
-          "totalSeconds" to workout.totalSeconds,
-          "avgPower" to workout.avgPower,
-          "avgHeartRate" to workout.avgHeartRate,
-          "activityType" to workout.activityType,
-          "notes" to workout.notes,
-          "splits" to
-            splits.map { split ->
-              mapOf(
-                "splitIndex" to split.splitIndex,
-                "distanceMeters" to split.distanceMeters,
-                "durationSeconds" to split.durationSeconds,
-                "avgPace" to split.avgPace,
-                "avgPower" to split.avgPower,
-                "avgHeartRate" to split.avgHeartRate,
-                "avgStrokeRate" to split.avgStrokeRate
-              )
-            }
-        )
-      db
-        .collection("users")
-        .document(uid)
-        .collection("workouts")
-        .document(workout.globalId)
-        .set(workoutData, SetOptions.merge())
+    try {
+      val workouts = workoutDao.getWorkoutsForUser(user.id).first()
+      for (workout in workouts) {
+        try {
+          val splits = splitDao.getSplitsForWorkoutSync(workout.id)
+          val workoutData =
+            hashMapOf(
+              "syncVersion" to SYNC_VERSION,
+              "globalId" to workout.globalId,
+              "startTime" to workout.startTime,
+              "endTime" to workout.endTime,
+              "totalDistanceMeters" to workout.totalDistanceMeters,
+              "totalSeconds" to workout.totalSeconds,
+              "avgPower" to workout.avgPower,
+              "avgHeartRate" to workout.avgHeartRate,
+              "activityType" to workout.activityType,
+              "notes" to workout.notes,
+              "splits" to
+                splits.map { split ->
+                  mapOf(
+                    "splitIndex" to split.splitIndex,
+                    "distanceMeters" to split.distanceMeters,
+                    "durationSeconds" to split.durationSeconds,
+                    "avgPace" to split.avgPace,
+                    "avgPower" to split.avgPower,
+                    "avgHeartRate" to split.avgHeartRate,
+                    "avgStrokeRate" to split.avgStrokeRate
+                  )
+                }
+            )
+          db
+            .collection("users")
+            .document(uid)
+            .collection("workouts")
+            .document(workout.globalId)
+            .set(workoutData, SetOptions.merge())
+            .await()
+        } catch (e: Exception) {
+          Log.e("CloudSyncManager", "Failed to sync workout ${workout.globalId}", e)
+        }
+      }
+    } catch (e: Exception) {
+      Log.e("CloudSyncManager", "Failed to fetch workouts for sync", e)
     }
 
     // Sync Training Plans (Full Hierarchy)
-    val plansWithDetails = trainingDao.getAllPlansWithDetails().first()
-    plansWithDetails.forEach { detailedPlan ->
-      val plan = detailedPlan.plan
-      val planData =
-        hashMapOf(
-          "syncVersion" to SYNC_VERSION,
-          "globalId" to plan.globalId,
-          "name" to plan.name,
-          "description" to plan.description,
-          "difficulty" to plan.difficulty,
-          "intensity" to plan.intensity,
-          "isFavorite" to plan.isFavorite,
-          "activityType" to plan.activityType,
-          "createdAt" to plan.createdAt,
-          "blocks" to
-            detailedPlan.blocks.map { blockWithSegments ->
-              val block = blockWithSegments.block
-              mapOf(
-                "name" to block.name,
-                "orderIndex" to block.orderIndex,
-                "repeatCount" to block.repeatCount,
-                "segments" to
-                  blockWithSegments.segments.map { seg ->
-                    mapOf(
-                      "orderIndex" to seg.orderIndex,
-                      "segmentType" to seg.segmentType,
-                      "durationType" to seg.durationType,
-                      "durationValue" to seg.durationValue,
-                      "targetSpm" to seg.targetSpm,
-                      "targetWatts" to seg.targetWatts,
-                      "targetPace" to seg.targetPace,
-                      "targetHr" to seg.targetHr
-                    )
-                  }
-              )
-            }
-        )
-      db
-        .collection("users")
-        .document(uid)
-        .collection("training_plans")
-        .document(plan.globalId)
-        .set(planData, SetOptions.merge())
+    try {
+      val plansWithDetails = trainingDao.getAllPlansWithDetails().first()
+      for (detailedPlan in plansWithDetails) {
+        try {
+          val plan = detailedPlan.plan
+          val planData =
+            hashMapOf(
+              "syncVersion" to SYNC_VERSION,
+              "globalId" to plan.globalId,
+              "name" to plan.name,
+              "description" to plan.description,
+              "difficulty" to plan.difficulty,
+              "intensity" to plan.intensity,
+              "isFavorite" to plan.isFavorite,
+              "activityType" to plan.activityType,
+              "createdAt" to plan.createdAt,
+              "lastUpdated" to plan.lastUpdated,
+              "blocks" to
+                detailedPlan.blocks.map { blockWithSegments ->
+                  val block = blockWithSegments.block
+                  mapOf(
+                    "name" to block.name,
+                    "orderIndex" to block.orderIndex,
+                    "repeatCount" to block.repeatCount,
+                    "segments" to
+                      blockWithSegments.segments.map { seg ->
+                        mapOf(
+                          "orderIndex" to seg.orderIndex,
+                          "segmentType" to seg.segmentType,
+                          "durationType" to seg.durationType,
+                          "durationValue" to seg.durationValue,
+                          "targetSpm" to seg.targetSpm,
+                          "targetWatts" to seg.targetWatts,
+                          "targetPace" to seg.targetPace,
+                          "targetHr" to seg.targetHr
+                        )
+                      }
+                  )
+                }
+            )
+          db
+            .collection("users")
+            .document(uid)
+            .collection("training_plans")
+            .document(plan.globalId)
+            .set(planData, SetOptions.merge())
+            .await()
+        } catch (e: Exception) {
+          Log.e("CloudSyncManager", "Failed to sync training plan ${detailedPlan.plan.globalId}", e)
+        }
+      }
+      Log.d("CloudSyncManager", "Full data sync process completed for $uid")
+    } catch (e: Exception) {
+      Log.e("CloudSyncManager", "Failed to fetch training plans for sync", e)
     }
-
-    Log.d("CloudSyncManager", "Full data sync triggered for $uid")
   }
 
   /**
@@ -240,7 +259,10 @@ class CloudSyncManager(
         db.collection("users").document(uid).collection("training_plans").get().await()
       for (doc in plansSnap.documents) {
         val globalId = doc.getString("globalId") ?: continue
-        if (trainingDao.getPlanByGlobalId(globalId) == null) {
+        val cloudLastUpdated = doc.getLong("lastUpdated") ?: 0L
+        val existingPlan = trainingDao.getPlanByGlobalId(globalId)
+
+        if (existingPlan == null) {
           val planId =
             trainingDao.insertTrainingPlan(
               TrainingPlan(
@@ -251,7 +273,8 @@ class CloudSyncManager(
                 intensity = doc.getString("intensity") ?: "Medium",
                 isFavorite = doc.getBoolean("isFavorite") ?: false,
                 createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
-                activityType = doc.getString("activityType") ?: ActivityType.ROWING.name
+                activityType = doc.getString("activityType") ?: ActivityType.ROWING.name,
+                lastUpdated = cloudLastUpdated
               )
             )
 
@@ -261,6 +284,51 @@ class CloudSyncManager(
               trainingDao.insertBlock(
                 TrainingBlock(
                   planId = planId,
+                  orderIndex = (b["orderIndex"] as? Long)?.toInt() ?: 0,
+                  name = b["name"] as? String ?: "Block",
+                  repeatCount = (b["repeatCount"] as? Long)?.toInt() ?: 1
+                )
+              )
+
+            val segmentsData = b["segments"] as? List<Map<String, Any>>
+            segmentsData?.forEach { s ->
+              trainingDao.insertSegment(
+                TrainingSegment(
+                  blockId = blockId,
+                  orderIndex = (s["orderIndex"] as? Long)?.toInt() ?: 0,
+                  segmentType = s["segmentType"] as? String ?: SegmentType.ACTIVE.name,
+                  durationType = s["durationType"] as? String ?: DurationType.TIME.name,
+                  durationValue = (s["durationValue"] as? Long)?.toInt() ?: 0,
+                  targetSpm = (s["targetSpm"] as? Long)?.toInt(),
+                  targetWatts = (s["targetWatts"] as? Long)?.toInt(),
+                  targetPace = (s["targetPace"] as? Long)?.toInt(),
+                  targetHr = (s["targetHr"] as? Long)?.toInt()
+                )
+              )
+            }
+          }
+        } else if (cloudLastUpdated > existingPlan.lastUpdated) {
+          // Update existing plan structure
+          val updatedPlan =
+            existingPlan.copy(
+              name = doc.getString("name") ?: existingPlan.name,
+              description = doc.getString("description") ?: existingPlan.description,
+              difficulty = doc.getString("difficulty") ?: existingPlan.difficulty,
+              intensity = doc.getString("intensity") ?: existingPlan.intensity,
+              isFavorite = doc.getBoolean("isFavorite") ?: existingPlan.isFavorite,
+              activityType = doc.getString("activityType") ?: existingPlan.activityType,
+              lastUpdated = cloudLastUpdated
+            )
+          trainingDao.updateTrainingPlan(updatedPlan)
+
+          // Replace blocks and segments (simplest way to sync complex hierarchy)
+          trainingDao.deleteBlocksForPlan(updatedPlan.id)
+          val blocksData = doc.get("blocks") as? List<Map<String, Any>>
+          blocksData?.forEach { b ->
+            val blockId =
+              trainingDao.insertBlock(
+                TrainingBlock(
+                  planId = updatedPlan.id,
                   orderIndex = (b["orderIndex"] as? Long)?.toInt() ?: 0,
                   name = b["name"] as? String ?: "Block",
                   repeatCount = (b["repeatCount"] as? Long)?.toInt() ?: 1
