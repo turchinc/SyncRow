@@ -11,10 +11,14 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.polidea.rxandroidble3.RxBleClient
 import com.polidea.rxandroidble3.exceptions.BleScanException
 import com.polidea.rxandroidble3.scan.ScanSettings
 import com.syncrow.R
+import com.syncrow.data.CloudSyncManager
 import com.syncrow.data.StravaRepository
 import com.syncrow.data.db.*
 import com.syncrow.hal.IHeartRateMonitor
@@ -33,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx3.asFlow
+import kotlinx.coroutines.tasks.await
 
 enum class SessionState {
   IDLE,
@@ -88,7 +93,8 @@ class WorkoutViewModel(
   private val metricPointDao: MetricPointDao,
   private val splitDao: SplitDao,
   private val trainingDao: TrainingDao,
-  private val stravaRepository: StravaRepository
+  private val stravaRepository: StravaRepository,
+  private val cloudSyncManager: CloudSyncManager
 ) : AndroidViewModel(application) {
 
   private val prefs = application.getSharedPreferences("syncrow_prefs", Context.MODE_PRIVATE)
@@ -149,6 +155,9 @@ class WorkoutViewModel(
 
   private val _toastEvent = MutableSharedFlow<ToastEvent>()
   val toastEvent = _toastEvent.asSharedFlow()
+
+  private val _isCloudPermanent = MutableStateFlow(false)
+  val isCloudPermanent: StateFlow<Boolean> = _isCloudPermanent.asStateFlow()
 
   private val toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
   private var textToSpeech: TextToSpeech? = null
@@ -388,7 +397,7 @@ class WorkoutViewModel(
     }
   }
 
-  private fun setCurrentUserInternal(user: User?) {
+  private fun setCurrentUserInternal(user: User?, forceRestore: Boolean = false) {
     _currentUser.value = user
     user?.let { u ->
       prefs.edit { putLong(KEY_LAST_USER_ID, u.id) }
@@ -397,6 +406,17 @@ class WorkoutViewModel(
       // Load saved devices for this user
       _selectedRowerAddress.value = prefs.getString("$KEY_ROWER_PREFIX${u.id}", null)
       _selectedHrmAddress.value = prefs.getString("$KEY_HRM_PREFIX${u.id}", null)
+
+      // Trigger cloud sync check and automatic restore if enabled
+      viewModelScope.launch {
+        cloudSyncManager.updateSyncStatus(u)
+        val auth = FirebaseAuth.getInstance()
+        _isCloudPermanent.value = auth.currentUser?.let { !it.isAnonymous } ?: false
+
+        if (forceRestore && u.cloudSyncEnabled) {
+          restoreFromCloud(u)
+        }
+      }
     }
   }
 
@@ -410,15 +430,77 @@ class WorkoutViewModel(
   }
 
   fun updateCurrentUser(user: User) {
+    val oldSyncEnabled = _currentUser.value?.cloudSyncEnabled ?: false
     viewModelScope.launch {
-      userDao.updateUser(user)
-      setCurrentUserInternal(user)
+      userDao.updateUser(user.copy(lastUpdated = System.currentTimeMillis()))
+      val updated = userDao.getUserById(user.id)
+      val shouldRestore = user.cloudSyncEnabled && !oldSyncEnabled
+      setCurrentUserInternal(updated, forceRestore = shouldRestore)
+    }
+  }
+
+  private suspend fun restoreFromCloud(user: User) {
+    _toastEvent.emit(ToastEvent.Resource(R.string.cloud_checking_data))
+    val success = cloudSyncManager.pullAndRestoreData(user)
+    if (success) {
+      _toastEvent.emit(ToastEvent.Resource(R.string.cloud_restore_success))
+      // Reload current user in case the profile was updated
+      _currentUser.value = userDao.getUserById(user.id)
+    }
+  }
+
+  fun linkWithGoogle(idToken: String) {
+    val user = _currentUser.value ?: return
+    viewModelScope.launch {
+      try {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        val firebaseAuth = FirebaseAuth.getInstance()
+        val currentUser = firebaseAuth.currentUser
+
+        val authResultUser =
+          if (currentUser != null && currentUser.isAnonymous) {
+            try {
+              currentUser.linkWithCredential(credential).await().user
+            } catch (e: FirebaseAuthUserCollisionException) {
+              // Account already exists with this Google credential.
+              // Before switching accounts, push any local anonymous data to the old UID's cloud
+              if (user.firebaseUid != null && user.cloudSyncEnabled) {
+                Log.d(
+                  "WorkoutViewModel",
+                  "Pushing local data before switching to existing Google account"
+                )
+                cloudSyncManager.updateSyncStatus(user)
+              }
+              // Sign in to the existing Google account to import that cloud data
+              firebaseAuth.signInWithCredential(credential).await().user
+            }
+          } else {
+            firebaseAuth.signInWithCredential(credential).await().user
+          }
+
+        val newUid = authResultUser?.uid
+        if (newUid != null) {
+          val updatedUser =
+            user.copy(firebaseUid = newUid, lastUpdated = System.currentTimeMillis())
+          userDao.updateUser(updatedUser)
+          _currentUser.value = updatedUser
+          _isCloudPermanent.value = true
+          _toastEvent.emit(ToastEvent.Resource(R.string.cloud_google_sync_success))
+          // Trigger a full sync/restore after linking
+          restoreFromCloud(updatedUser)
+          cloudSyncManager.updateSyncStatus(updatedUser)
+        }
+      } catch (e: Exception) {
+        Log.e("WorkoutViewModel", "Linking failed", e)
+        _toastEvent.emit(
+          ToastEvent.Resource(R.string.cloud_link_failed, listOf(e.message ?: "Unknown"))
+        )
+      }
     }
   }
 
   fun switchUser(user: User) {
-    setCurrentUserInternal(user)
-    // No need to clear addresses manually; setCurrentUserInternal loads the new user's saved ones
+    setCurrentUserInternal(user, forceRestore = user.cloudSyncEnabled)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -434,19 +516,29 @@ class WorkoutViewModel(
   }
 
   fun deleteWorkout(workoutId: Long) {
+    val user = _currentUser.value ?: return
     viewModelScope.launch {
       val workout = workoutDao.getWorkoutById(workoutId)
       if (workout != null) {
+        // Delete from cloud if sync enabled
+        if (user.cloudSyncEnabled) {
+          cloudSyncManager.deleteWorkoutFromCloud(workout.globalId)
+        }
         workoutDao.deleteWorkout(workout)
       }
     }
   }
 
   fun deleteWorkouts(workoutIds: List<Long>) {
+    val user = _currentUser.value ?: return
     viewModelScope.launch {
       workoutIds.forEach { id ->
         val workout = workoutDao.getWorkoutById(id)
         if (workout != null) {
+          // Delete from cloud if sync enabled
+          if (user.cloudSyncEnabled) {
+            cloudSyncManager.deleteWorkoutFromCloud(workout.globalId)
+          }
           workoutDao.deleteWorkout(workout)
         }
       }
@@ -694,7 +786,9 @@ class WorkoutViewModel(
       val paceSec = avgPace % 60
       val paceStr = "%d:%02d".format(paceMin, paceSec)
 
-      _toastEvent.emit(ToastEvent.String("Split $index: $dist m in $timeStr ($paceStr/500m)"))
+      _toastEvent.emit(
+        ToastEvent.Resource(R.string.split_recorded, listOf(index, dist, timeStr, paceStr))
+      )
     }
   }
 
@@ -793,6 +887,9 @@ class WorkoutViewModel(
             ) {
               syncWorkoutToStrava(workoutId)
             }
+
+            // TRIGGER CLOUD SYNC IMMEDIATELY
+            currentUser?.let { cloudSyncManager.updateSyncStatus(it) }
 
             _workoutFinishedEvent.emit(workoutId)
           }
@@ -965,11 +1062,11 @@ class WorkoutViewModel(
     viewModelScope.launch {
       val newPlanId = planExchange.importPlan(uri)
       if (newPlanId != null) {
-        _toastEvent.emit(ToastEvent.String("Training plan imported successfully!"))
+        _toastEvent.emit(ToastEvent.Resource(R.string.training_plan_imported))
+        // Sync after import
+        _currentUser.value?.let { cloudSyncManager.updateSyncStatus(it) }
       } else {
-        _toastEvent.emit(
-          ToastEvent.String("Failed to import training plan. Please check the file format.")
-        )
+        _toastEvent.emit(ToastEvent.Resource(R.string.training_plan_import_failed))
       }
     }
   }
@@ -982,7 +1079,8 @@ class WorkoutViewModel(
     private val metricPointDao: MetricPointDao,
     private val splitDao: SplitDao,
     private val trainingDao: TrainingDao,
-    private val stravaRepository: StravaRepository
+    private val stravaRepository: StravaRepository,
+    private val cloudSyncManager: CloudSyncManager
   ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
@@ -994,7 +1092,8 @@ class WorkoutViewModel(
         metricPointDao,
         splitDao,
         trainingDao,
-        stravaRepository
+        stravaRepository,
+        cloudSyncManager
       )
         as T
   }

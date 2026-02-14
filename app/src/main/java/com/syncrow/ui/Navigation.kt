@@ -13,6 +13,7 @@ import com.syncrow.ui.discovery.DiscoveryScreen
 import com.syncrow.ui.history.HistoryScreen
 import com.syncrow.ui.history.WorkoutDetailScreen
 import com.syncrow.ui.home.HomeScreen
+import com.syncrow.ui.profile.ProfileEditorScreen
 import com.syncrow.ui.profile.ProfileScreen
 import com.syncrow.ui.training.TrainingEditorScreen
 import com.syncrow.ui.training.TrainingListScreen
@@ -28,6 +29,8 @@ sealed class Screen(val route: String) {
   object Discovery : Screen("discovery")
 
   object Profile : Screen("profile")
+
+  object ProfileEditor : Screen("profile_editor")
 
   object History : Screen("history")
 
@@ -50,7 +53,15 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
   // Obtain TrainingViewModel. Usually done via Hilt, but here we construct factory manually
   val app = viewModel.getApplication<SyncRowApplication>()
   val trainingViewModel: TrainingViewModel =
-    viewModel(factory = TrainingViewModel.Factory(app, app.database.trainingDao()))
+    viewModel(
+      factory =
+        TrainingViewModel.Factory(
+          app,
+          app.database.trainingDao(),
+          app.database.userDao(),
+          app.cloudSyncManager
+        )
+    )
 
   NavHost(navController = navController, startDestination = Screen.Home.route) {
     composable(Screen.Home.route) {
@@ -86,7 +97,14 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
       DiscoveryScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
     }
     composable(Screen.Profile.route) {
-      ProfileScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+      ProfileScreen(
+        viewModel = viewModel,
+        onBack = { navController.popBackStack() },
+        onNavigateToEditor = { navController.navigate(Screen.ProfileEditor.route) }
+      )
+    }
+    composable(Screen.ProfileEditor.route) {
+      ProfileEditorScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
     }
     composable(Screen.History.route) {
       HistoryScreen(

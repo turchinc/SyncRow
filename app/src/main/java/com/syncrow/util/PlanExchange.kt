@@ -76,6 +76,14 @@ class PlanExchange(private val context: Context, private val trainingDao: Traini
   }
 
   private suspend fun savePlanToDb(dto: TrainingPlanDto): Long {
+    // Check if a plan with this globalId already exists to avoid duplication
+    dto.globalId?.let { gid ->
+      val existing = trainingDao.getPlanByGlobalId(gid)
+      if (existing != null) {
+        return existing.id
+      }
+    }
+
     // Save Plan
     val plan = dto.toEntity().copy(name = "${dto.name} (Imported)")
     val planId = trainingDao.insertTrainingPlan(plan)

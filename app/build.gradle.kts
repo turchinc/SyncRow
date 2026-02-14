@@ -5,6 +5,11 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("com.diffplug.spotless")
+    // NOTE: This plugin expects an app/google-services.json file for Firebase/Google services.
+    // In CI, this file is generated from a secret. For local development, obtain your own
+    // google-services.json from the Firebase project and place it in the app/ module
+    // (optionally using a google-services.json.example file as a template if present).
+    id("com.google.gms.google-services")
 }
 
 val localProperties = Properties()
@@ -54,9 +59,13 @@ android {
         val stravaSecret = localProperties.getProperty("strava_client_secret") 
             ?: System.getenv("STRAVA_CLIENT_SECRET") 
             ?: ""
+        val googleClientId = localProperties.getProperty("google_web_client_id") 
+            ?: System.getenv("GOOGLE_WEB_CLIENT_ID") 
+            ?: ""
 
         buildConfigField("String", "STRAVA_CLIENT_ID", "\"$stravaId\"")
         buildConfigField("String", "STRAVA_CLIENT_SECRET", "\"$stravaSecret\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleClientId\"")
     }
 
     androidResources {
@@ -158,6 +167,13 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

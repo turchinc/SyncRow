@@ -42,12 +42,36 @@ fun TrainingListScreen(
   val sortOrder by viewModel.sortOrder.collectAsState()
   val filterDifficulty by viewModel.filterDifficulty.collectAsState()
 
+  var planToDelete by remember { mutableStateOf<TrainingPlan?>(null) }
+
   // Launcher for importing JSON file
   val importLauncher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocument()) { uri: Uri?
       ->
       uri?.let { viewModel.importPlan(it) }
     }
+
+  if (planToDelete != null) {
+    AlertDialog(
+      onDismissRequest = { planToDelete = null },
+      title = { Text(stringResource(R.string.dialog_delete_plan_title)) },
+      text = { Text(stringResource(R.string.dialog_delete_plan_message)) },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            planToDelete?.let { viewModel.deletePlan(it) }
+            planToDelete = null
+          },
+          colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+        ) {
+          Text(stringResource(R.string.btn_delete))
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { planToDelete = null }) { Text(stringResource(R.string.btn_cancel)) }
+      }
+    )
+  }
 
   Scaffold(
     topBar = {
@@ -111,7 +135,7 @@ fun TrainingListScreen(
             },
             onStart = { onStartWorkout(summary.plan.id) },
             onFavorite = { viewModel.toggleFavorite(summary.plan) },
-            onDelete = { viewModel.deletePlan(summary.plan) },
+            onDelete = { planToDelete = summary.plan },
             onCopy = { viewModel.copyPlan(summary.plan.id) },
             onShare = { viewModel.sharePlan(summary.plan.id) }
           )
