@@ -5,6 +5,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("com.diffplug.spotless")
+    // NOTE: This plugin expects an app/google-services.json file for Firebase/Google services.
+    // In CI, this file is generated from a secret. For local development, obtain your own
+    // google-services.json from the Firebase project and place it in the app/ module
+    // (optionally using a google-services.json.example file as a template if present).
     id("com.google.gms.google-services")
 }
 
