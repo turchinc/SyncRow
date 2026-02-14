@@ -8,12 +8,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.syncrow.data.CloudSyncManager
 import com.syncrow.data.db.DurationType
 import com.syncrow.data.db.SegmentType
 import com.syncrow.data.db.TrainingBlock
 import com.syncrow.data.db.TrainingDao
 import com.syncrow.data.db.TrainingPlan
 import com.syncrow.data.db.TrainingSegment
+import com.syncrow.data.db.UserDao
 import com.syncrow.util.PlanExchange
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,8 +44,12 @@ private data class SegmentData(
   val targetHr: Int? = null
 )
 
-class TrainingViewModel(application: Application, private val trainingDao: TrainingDao) :
-  AndroidViewModel(application) {
+class TrainingViewModel(
+  application: Application,
+  private val trainingDao: TrainingDao,
+  private val userDao: UserDao,
+  private val cloudSyncManager: CloudSyncManager
+) : AndroidViewModel(application) {
 
   private val prefs = application.getSharedPreferences("training_prefs", Context.MODE_PRIVATE)
   private val planExchange = PlanExchange(application, trainingDao)
@@ -201,6 +207,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
       val newPlan =
         originalPlan.copy(
           id = 0,
+          globalId = java.util.UUID.randomUUID().toString(),
           name = "Copy of ${originalPlan.name}",
           isFavorite = false,
           createdAt = System.currentTimeMillis()
@@ -296,7 +303,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
         if (plan.id == 0L) {
           trainingDao.insertTrainingPlan(plan)
         } else {
-          trainingDao.updateTrainingPlan(plan)
+          trainingDao.updateTrainingPlan(plan.copy(lastUpdated = System.currentTimeMillis()))
           // Clear old data
           trainingDao.deleteBlocksForPlan(plan.id)
           plan.id
@@ -314,17 +321,37 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
           trainingDao.insertSegments(segments)
         }
       }
+      triggerSync()
     }
   }
 
   fun deletePlan(plan: TrainingPlan) {
-    viewModelScope.launch { trainingDao.deleteTrainingPlan(plan) }
+    viewModelScope.launch {
+      trainingDao.deleteTrainingPlan(plan)
+      triggerSync()
+    }
   }
 
   fun toggleFavorite(plan: TrainingPlan) {
     viewModelScope.launch {
-      trainingDao.updateTrainingPlan(plan.copy(isFavorite = !plan.isFavorite))
+      trainingDao.updateTrainingPlan(
+        plan.copy(isFavorite = !plan.isFavorite, lastUpdated = System.currentTimeMillis())
+      )
+      triggerSync()
     }
+  }
+
+  private suspend fun triggerSync() {
+    val users = userDao.getAllUsers().first()
+    val lastUserId =
+      getApplication<Application>()
+        .getSharedPreferences("syncrow_prefs", Context.MODE_PRIVATE)
+        .getLong("last_user_id", -1L)
+    val activeUser =
+      if (lastUserId != -1L) userDao.getUserById(lastUserId) ?: users.firstOrNull()
+      else users.firstOrNull()
+
+    activeUser?.let { cloudSyncManager.updateSyncStatus(it) }
   }
 
   // --- Export / Import ---
@@ -338,6 +365,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
       val newPlanId = planExchange.importPlan(uri)
       if (newPlanId != null) {
         Toast.makeText(getApplication(), "Plan imported successfully!", Toast.LENGTH_SHORT).show()
+        triggerSync()
       } else {
         Toast.makeText(getApplication(), "Failed to import plan.", Toast.LENGTH_SHORT).show()
       }
@@ -347,6 +375,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
   private suspend fun seedDefaults() {
     // 1. Beginner: "The Foundation"
     createPlan(
+      globalId = "seeded-plan-foundation",
       name = "Beginner: The Foundation",
       description = "Build aerobic base and stroke consistency.",
       difficulty = "Beginner",
@@ -373,6 +402,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
 
     // 2. Beginner: "SPM Ladder"
     createPlan(
+      globalId = "seeded-plan-spm-ladder",
       name = "Beginner: SPM Ladder",
       description = "Learn Gears (shifting intensity).",
       difficulty = "Beginner",
@@ -404,6 +434,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
 
     // 3. Intermediate: "The Pyramid"
     createPlan(
+      globalId = "seeded-plan-pyramid",
       name = "Intermediate: The Pyramid",
       description = "Anaerobic threshold and recovery under load.",
       difficulty = "Intermediate",
@@ -440,6 +471,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
 
     // 4. Intermediate: "Power 10s"
     createPlan(
+      globalId = "seeded-plan-power-10s",
       name = "Intermediate: Power 10s",
       description = "Explosive power and leg drive.",
       difficulty = "Intermediate",
@@ -474,6 +506,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
 
     // 5. Advanced: "2K Simulator"
     createPlan(
+      globalId = "seeded-plan-2k-sim",
       name = "Advanced: 2K Simulator",
       description = "High-intensity endurance and mental toughness.",
       difficulty = "Advanced",
@@ -517,6 +550,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
   }
 
   private suspend fun createPlan(
+    globalId: String? = null,
     name: String,
     description: String,
     difficulty: String,
@@ -525,6 +559,7 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
   ) {
     val plan =
       TrainingPlan(
+        globalId = globalId ?: java.util.UUID.randomUUID().toString(),
         name = name,
         description = description,
         difficulty = difficulty,
@@ -560,10 +595,14 @@ class TrainingViewModel(application: Application, private val trainingDao: Train
     }
   }
 
-  class Factory(private val application: Application, private val trainingDao: TrainingDao) :
-    ViewModelProvider.Factory {
+  class Factory(
+    private val application: Application,
+    private val trainingDao: TrainingDao,
+    private val userDao: UserDao,
+    private val cloudSyncManager: CloudSyncManager
+  ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
-      TrainingViewModel(application, trainingDao) as T
+      TrainingViewModel(application, trainingDao, userDao, cloudSyncManager) as T
   }
 }

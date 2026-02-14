@@ -517,7 +517,9 @@ fun SessionControls(sessionState: SessionState, viewModel: WorkoutViewModel, onS
         Button(onClick = { viewModel.pauseWorkout() }) { Text(stringResource(R.string.btn_pause)) }
         Spacer(modifier = Modifier.width(8.dp))
         if (trainingState.isActive) {
-          OutlinedButton(onClick = { viewModel.skipSegment() }) { Text("SKIP") }
+          OutlinedButton(onClick = { viewModel.skipSegment() }) {
+            Text(stringResource(R.string.btn_skip))
+          }
         } else {
           OutlinedButton(onClick = { viewModel.markSplit() }) {
             Text(stringResource(R.string.btn_split))

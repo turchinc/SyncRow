@@ -53,7 +53,15 @@ fun SyncRowNavGraph(viewModel: WorkoutViewModel, onQuit: () -> Unit) {
   // Obtain TrainingViewModel. Usually done via Hilt, but here we construct factory manually
   val app = viewModel.getApplication<SyncRowApplication>()
   val trainingViewModel: TrainingViewModel =
-    viewModel(factory = TrainingViewModel.Factory(app, app.database.trainingDao()))
+    viewModel(
+      factory =
+        TrainingViewModel.Factory(
+          app,
+          app.database.trainingDao(),
+          app.database.userDao(),
+          app.cloudSyncManager
+        )
+    )
 
   NavHost(navController = navController, startDestination = Screen.Home.route) {
     composable(Screen.Home.route) {

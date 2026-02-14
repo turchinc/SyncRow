@@ -177,6 +177,38 @@ class CloudSyncManager(
     }
   }
 
+  suspend fun deleteWorkoutFromCloud(globalId: String) {
+    val uid = auth.currentUser?.uid ?: return
+    try {
+      db
+        .collection("users")
+        .document(uid)
+        .collection("workouts")
+        .document(globalId)
+        .delete()
+        .await()
+      Log.d("CloudSyncManager", "Deleted workout from cloud: $globalId")
+    } catch (e: Exception) {
+      Log.e("CloudSyncManager", "Failed to delete workout from cloud: $globalId", e)
+    }
+  }
+
+  suspend fun deleteTrainingPlanFromCloud(globalId: String) {
+    val uid = auth.currentUser?.uid ?: return
+    try {
+      db
+        .collection("users")
+        .document(uid)
+        .collection("training_plans")
+        .document(globalId)
+        .delete()
+        .await()
+      Log.d("CloudSyncManager", "Deleted training plan from cloud: $globalId")
+    } catch (e: Exception) {
+      Log.e("CloudSyncManager", "Failed to delete training plan from cloud: $globalId", e)
+    }
+  }
+
   /**
    * Pulls data from Firestore and restores it locally. If [targetUser] is provided, it updates that
    * user.
@@ -260,14 +292,29 @@ class CloudSyncManager(
       for (doc in plansSnap.documents) {
         val globalId = doc.getString("globalId") ?: continue
         val cloudLastUpdated = doc.getLong("lastUpdated") ?: 0L
-        val existingPlan = trainingDao.getPlanByGlobalId(globalId)
+        val name = doc.getString("name") ?: "Restored Plan"
+
+        var existingPlan = trainingDao.getPlanByGlobalId(globalId)
+
+        // DEDUPLICATION LOGIC:
+        // If we don't have this plan by ID, check if we have one with the same name.
+        // This handles pre-seeded plans that got different random UUIDs on each device.
+        if (existingPlan == null) {
+          val duplicateByName = trainingDao.getPlanByName(name)
+          if (duplicateByName != null) {
+            // Adopt the cloud globalId to merge these plans for all future syncs
+            existingPlan = duplicateByName.copy(globalId = globalId)
+            trainingDao.updateTrainingPlan(existingPlan)
+            Log.d("CloudSyncManager", "Merged duplicate plan by name: $name")
+          }
+        }
 
         if (existingPlan == null) {
           val planId =
             trainingDao.insertTrainingPlan(
               TrainingPlan(
                 globalId = globalId,
-                name = doc.getString("name") ?: "Restored Plan",
+                name = name,
                 description = doc.getString("description") ?: "",
                 difficulty = doc.getString("difficulty") ?: "Beginner",
                 intensity = doc.getString("intensity") ?: "Medium",

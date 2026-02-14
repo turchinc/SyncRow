@@ -142,6 +142,7 @@
     <string name="btn_save_plan">Save</string>
     <string name="btn_ok">OK</string>
     <string name="btn_cancel_dialog">Cancel</string>
+    <string name="btn_skip">SKIP</string>
 
     <string name="target_spm">Stroke Rate (SPM)</string>
     <string name="target_watts">Power (Watts)</string>
@@ -204,4 +205,15 @@
     <string name="sync_mode_anon">Cloud Backup (This device only)</string>
     <string name="sync_mode_google">Cross-device Sync (Google Account)</string>
     <string name="description_sync_mode">Anonymous sync keeps data backed up for this app install. Google sync allows sharing your history across your Pixel, Tablet, and other devices.</string>
+    <string name="cloud_checking_data">Checking for cloud data…</string>
+    <string name="cloud_restore_success">Cloud data restored successfully!</string>
+    <string name="cloud_google_sync_success">Account synced with Google!</string>
+    <string name="cloud_link_failed">Failed to link account: %1$s</string>
+
+    <!-- Training Plan Messages -->
+    <string name="training_plan_imported">Training plan imported successfully!</string>
+    <string name="training_plan_import_failed">Failed to import training plan. Please check the file format.</string>
+
+    <!-- Split Messages -->
+    <string name="split_recorded">Split %1$d: %2$d m in %3$s (%4$s/500m)</string>
 </resources>

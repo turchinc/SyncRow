@@ -440,10 +440,10 @@ class WorkoutViewModel(
   }
 
   private suspend fun restoreFromCloud(user: User) {
-    _toastEvent.emit(ToastEvent.String("Checking for cloud data..."))
+    _toastEvent.emit(ToastEvent.Resource(R.string.cloud_checking_data))
     val success = cloudSyncManager.pullAndRestoreData(user)
     if (success) {
-      _toastEvent.emit(ToastEvent.String("Cloud data restored successfully!"))
+      _toastEvent.emit(ToastEvent.Resource(R.string.cloud_restore_success))
       // Reload current user in case the profile was updated
       _currentUser.value = userDao.getUserById(user.id)
     }
@@ -463,7 +463,15 @@ class WorkoutViewModel(
               currentUser.linkWithCredential(credential).await().user
             } catch (e: FirebaseAuthUserCollisionException) {
               // Account already exists with this Google credential.
-              // Sign in to it instead to "import" that cloud data.
+              // Before switching accounts, push any local anonymous data to the old UID's cloud
+              if (user.firebaseUid != null && user.cloudSyncEnabled) {
+                Log.d(
+                  "WorkoutViewModel",
+                  "Pushing local data before switching to existing Google account"
+                )
+                cloudSyncManager.updateSyncStatus(user)
+              }
+              // Sign in to the existing Google account to import that cloud data
               firebaseAuth.signInWithCredential(credential).await().user
             }
           } else {
@@ -477,14 +485,16 @@ class WorkoutViewModel(
           userDao.updateUser(updatedUser)
           _currentUser.value = updatedUser
           _isCloudPermanent.value = true
-          _toastEvent.emit(ToastEvent.String("Account synced with Google!"))
+          _toastEvent.emit(ToastEvent.Resource(R.string.cloud_google_sync_success))
           // Trigger a full sync/restore after linking
           restoreFromCloud(updatedUser)
           cloudSyncManager.updateSyncStatus(updatedUser)
         }
       } catch (e: Exception) {
         Log.e("WorkoutViewModel", "Linking failed", e)
-        _toastEvent.emit(ToastEvent.String("Failed to link account: ${e.message}"))
+        _toastEvent.emit(
+          ToastEvent.Resource(R.string.cloud_link_failed, listOf(e.message ?: "Unknown"))
+        )
       }
     }
   }
@@ -506,19 +516,29 @@ class WorkoutViewModel(
   }
 
   fun deleteWorkout(workoutId: Long) {
+    val user = _currentUser.value ?: return
     viewModelScope.launch {
       val workout = workoutDao.getWorkoutById(workoutId)
       if (workout != null) {
+        // Delete from cloud if sync enabled
+        if (user.cloudSyncEnabled) {
+          cloudSyncManager.deleteWorkoutFromCloud(workout.globalId)
+        }
         workoutDao.deleteWorkout(workout)
       }
     }
   }
 
   fun deleteWorkouts(workoutIds: List<Long>) {
+    val user = _currentUser.value ?: return
     viewModelScope.launch {
       workoutIds.forEach { id ->
         val workout = workoutDao.getWorkoutById(id)
         if (workout != null) {
+          // Delete from cloud if sync enabled
+          if (user.cloudSyncEnabled) {
+            cloudSyncManager.deleteWorkoutFromCloud(workout.globalId)
+          }
           workoutDao.deleteWorkout(workout)
         }
       }
@@ -766,7 +786,9 @@ class WorkoutViewModel(
       val paceSec = avgPace % 60
       val paceStr = "%d:%02d".format(paceMin, paceSec)
 
-      _toastEvent.emit(ToastEvent.String("Split $index: $dist m in $timeStr ($paceStr/500m)"))
+      _toastEvent.emit(
+        ToastEvent.Resource(R.string.split_recorded, listOf(index, dist, timeStr, paceStr))
+      )
     }
   }
 
@@ -865,6 +887,9 @@ class WorkoutViewModel(
             ) {
               syncWorkoutToStrava(workoutId)
             }
+
+            // TRIGGER CLOUD SYNC IMMEDIATELY
+            currentUser?.let { cloudSyncManager.updateSyncStatus(it) }
 
             _workoutFinishedEvent.emit(workoutId)
           }
@@ -1037,11 +1062,11 @@ class WorkoutViewModel(
     viewModelScope.launch {
       val newPlanId = planExchange.importPlan(uri)
       if (newPlanId != null) {
-        _toastEvent.emit(ToastEvent.String("Training plan imported successfully!"))
+        _toastEvent.emit(ToastEvent.Resource(R.string.training_plan_imported))
+        // Sync after import
+        _currentUser.value?.let { cloudSyncManager.updateSyncStatus(it) }
       } else {
-        _toastEvent.emit(
-          ToastEvent.String("Failed to import training plan. Please check the file format.")
-        )
+        _toastEvent.emit(ToastEvent.Resource(R.string.training_plan_import_failed))
       }
     }
   }

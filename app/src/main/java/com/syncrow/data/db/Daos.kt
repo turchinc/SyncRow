@@ -89,6 +89,9 @@ interface TrainingDao {
   @Query("SELECT * FROM training_plans WHERE globalId = :globalId LIMIT 1")
   suspend fun getPlanByGlobalId(globalId: String): TrainingPlan?
 
+  @Query("SELECT * FROM training_plans WHERE name = :name LIMIT 1")
+  suspend fun getPlanByName(name: String): TrainingPlan?
+
   @Query("SELECT * FROM training_plans WHERE isFavorite = 1 ORDER BY createdAt DESC")
   fun getFavoriteTrainingPlans(): Flow<List<TrainingPlan>>
 
