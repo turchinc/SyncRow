@@ -159,6 +159,9 @@ class WorkoutViewModel(
   private val _isCloudPermanent = MutableStateFlow(false)
   val isCloudPermanent: StateFlow<Boolean> = _isCloudPermanent.asStateFlow()
 
+  private val _useConcept2Watts = MutableStateFlow(prefs.getBoolean("use_concept2_watts", true))
+  val useConcept2Watts: StateFlow<Boolean> = _useConcept2Watts.asStateFlow()
+
   private val toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
   private var textToSpeech: TextToSpeech? = null
   private var ttsReady = false
@@ -180,6 +183,8 @@ class WorkoutViewModel(
 
   init {
     loadUser()
+    (rowingMachine as? FtmsRowingMachine)?.useConcept2Watts = _useConcept2Watts.value
+
     // Automatically restart HR collection when the selected HRM address changes
     viewModelScope.launch {
       selectedHrmAddress.collect { address ->
@@ -1069,6 +1074,12 @@ class WorkoutViewModel(
         _toastEvent.emit(ToastEvent.Resource(R.string.training_plan_import_failed))
       }
     }
+  }
+
+  fun setUseConcept2Watts(use: Boolean) {
+    _useConcept2Watts.value = use
+    prefs.edit { putBoolean("use_concept2_watts", use) }
+    (rowingMachine as? FtmsRowingMachine)?.useConcept2Watts = use
   }
 
   class Factory(

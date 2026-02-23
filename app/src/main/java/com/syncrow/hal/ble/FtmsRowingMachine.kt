@@ -29,6 +29,12 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
   // State persistence
   private var lastMetrics = RowerMetrics(0, 0, 0, 0, 0)
 
+  /**
+   * If true, wattage is calculated using the Concept2-standard physics formula from pace. If false,
+   * the machine's reported wattage is used directly.
+   */
+  var useConcept2Watts: Boolean = true
+
   override fun getMetricsFlow(targetAddress: String?): Flow<RowerMetrics> {
     val scanFilter = ScanFilter.Builder()
     if (targetAddress != null) {
@@ -97,11 +103,10 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
   }
 
   /**
-   * Parses Rowing Machine Data (0x2AD1) using the dynamic FTMS bit-flag specification. Adjusted
-   * based on real-world feedback: Distance and Pace scaling removed.
+   * Parses Rowing Machine Data (0x2AD1) using the dynamic FTMS bit-flag specification.
    *
-   * Note: Wattage is now calculated using Concept2 standard formula from pace data, instead of
-   * using the machine's reported wattage, for better accuracy and comparability.
+   * Fixed bug: Stroke Rate/Count presence is now correctly checked via the 'More Data' bit (Bit 0).
+   * Fixed bug: Offsets are now correctly advanced for all fields, including Average Pace.
    */
   private fun parseRowerData(bytes: ByteArray): RowerMetrics {
     if (bytes.size < 2) return lastMetrics
@@ -119,16 +124,19 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
     var power = lastMetrics.power
     var heartRate = lastMetrics.heartRate
     var paceUpdated = false
+    var machinePower = 0
 
     try {
       // 1. Stroke Rate (UINT8) & Stroke Count (UINT16)
-      // These are mandatory base fields.
-      // Bit 0 is "More Data", not a presence flag for these fields.
-      if (bytes.size >= offset + 3) {
-        // Value is stored as x2 (0.5 resolution)
-        strokeRate = (bytes[offset].toInt() and 0xFF) / 2
-        // Skip Stroke Count (2 bytes)
-        offset += 3
+      // Spec: These fields are present ONLY IF "More Data" bit (Bit 0) is 0.
+      if ((b5 and 0x01) == 0) {
+        if (bytes.size >= offset + 3) {
+          // Value is stored as x2 (0.5 resolution) per spec.
+          // If this is still too high, some machines might be sending direct SPM.
+          strokeRate = (bytes[offset].toInt() and 0xFF) / 2
+          // Skip Stroke Count (2 bytes)
+          offset += 3
+        }
       }
 
       // 2. Average Stroke Rate (UINT8)
@@ -174,10 +182,16 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
 
       // 6. Instantaneous Power (SINT16)
       // Presence: Bit 5 of b5
-      // NOTE: We skip the machine's reported wattage and calculate it from pace instead
       if ((b5 and 0x20) != 0) {
         if (bytes.size >= offset + 2) {
-          // Skip the machine's wattage value (still need to advance offset)
+          // SINT16 Power
+          machinePower = (bytes[offset].toInt() and 0xFF) or (bytes[offset + 1].toInt() shl 8)
+          // Power values are often signed; handle negative if necessary
+          if (machinePower > 32767) machinePower -= 65536
+
+          if (!useConcept2Watts) {
+            power = machinePower
+          }
           offset += 2
         }
       }
@@ -223,10 +237,14 @@ class FtmsRowingMachine(private val rxBleClient: RxBleClient) : IRowingMachine {
         offset += 2
       }
 
-      // Calculate Concept2-standard wattage from pace only if pace was present in this packet.
-      // If pace was not present, retain the power from lastMetrics (which was calculated from
-      // the last known pace). This ensures power and pace remain synchronized.
-      if (paceUpdated) {
+      // Final Power logic:
+      // If using Concept2, calculate from pace.
+      // If NOT using Concept2, we already set power = machinePower above.
+      if (useConcept2Watts && paceUpdated) {
+        power = calculateConcept2Watts(pace)
+      } else if (!useConcept2Watts && machinePower == 0 && paceUpdated) {
+        // Fallback if machine reports 0 watts but we have a pace
+        // This handles cases where machine reports flags but sends 0s
         power = calculateConcept2Watts(pace)
       }
 

@@ -33,6 +33,7 @@ import com.syncrow.ui.workout.WorkoutViewModel
 fun ProfileEditorScreen(viewModel: WorkoutViewModel, onBack: () -> Unit) {
   val user by viewModel.currentUser.collectAsState()
   val isCloudPermanent by viewModel.isCloudPermanent.collectAsState()
+  val useConcept2Watts by viewModel.useConcept2Watts.collectAsState()
   val context = LocalContext.current
 
   if (user == null) {
@@ -439,6 +440,30 @@ fun ProfileEditorScreen(viewModel: WorkoutViewModel, onBack: () -> Unit) {
           Spacer(modifier = Modifier.width(8.dp))
           Text(stringResource(R.string.btn_disconnect_strava))
         }
+      }
+
+      HorizontalDivider()
+
+      // TEMP DEBUG SECTION
+      Text(
+        "DEBUG / EXPERIMENTAL",
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.error
+      )
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+          Modifier.fillMaxWidth().clickable { viewModel.setUseConcept2Watts(!useConcept2Watts) }
+      ) {
+        Column(modifier = Modifier.weight(1f)) {
+          Text("Use Concept2 Wattage", style = MaterialTheme.typography.bodyLarge)
+          Text(
+            "ON: Derive from pace. OFF: Use machine reported power.",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+          )
+        }
+        Switch(checked = useConcept2Watts, onCheckedChange = { viewModel.setUseConcept2Watts(it) })
       }
 
       Spacer(modifier = Modifier.height(32.dp))
