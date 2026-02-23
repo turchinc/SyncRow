@@ -73,9 +73,7 @@ fun WorkoutDashboard(viewModel: WorkoutViewModel, onFinish: (Long?) -> Unit) {
         ) {
           Text(
             text = if (countdownSeconds > 0) countdownSeconds.toString() else "GO!",
-            color =
-              if (countdownSeconds > 0) MaterialTheme.colorScheme.primary
-              else Color(0xFF00C853), // Green
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 120.sp,
             fontWeight = FontWeight.Black
           )
@@ -388,7 +386,7 @@ fun PortraitLayout(
   ) {
     Text(
       text = stringResource(R.string.btn_just_row),
-      color = Color(0xFF00C853),
+      color = MaterialTheme.colorScheme.primary, // Using brand primary
       fontSize = 16.sp,
       fontWeight = FontWeight.ExtraBold
     )

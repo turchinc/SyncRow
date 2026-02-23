@@ -88,8 +88,9 @@ fun DiscoveryScreen(viewModel: WorkoutViewModel, onBack: () -> Unit) {
 fun DeviceItem(device: DiscoveredDevice, isSelected: Boolean, onClick: () -> Unit) {
   val categoryColor =
     when (device.type) {
-      DeviceType.ROWER -> Color(0xFF00C853) // Green
-      DeviceType.HRM -> Color.Red
+      DeviceType.ROWER -> MaterialTheme.colorScheme.primary
+      DeviceType.HRM ->
+        MaterialTheme.colorScheme.error // Using error/red for Heart Rate is standard
       else -> Color.Gray
     }
 
@@ -102,7 +103,14 @@ fun DeviceItem(device: DiscoveredDevice, isSelected: Boolean, onClick: () -> Uni
     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
       Column(modifier = Modifier.weight(1f)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          Badge(containerColor = categoryColor) { Text(device.type.name, color = Color.White) }
+          Badge(containerColor = categoryColor) {
+            Text(
+              device.type.name,
+              color =
+                if (device.type == DeviceType.ROWER) MaterialTheme.colorScheme.onPrimary
+                else Color.White
+            )
+          }
           Spacer(modifier = Modifier.width(8.dp))
           val displayName =
             if (device.name == "Unknown Device") stringResource(R.string.unknown_device)
