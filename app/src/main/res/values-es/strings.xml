@@ -71,6 +71,7 @@
     <string name="strava_syncing">Sincronizando con Strava...</string>
     <string name="strava_sync_success">¡Entrenamiento sincronizado con Strava!</string>
     <string name="strava_sync_error">Error al sincronizar con Strava.</string>
+    <string name="error_strava_credentials_missing">ID de cliente de Strava no configurado en local.properties</string>
 
     <string name="dialog_delete_workout_title">Eliminar entrenamiento</string>
     <string name="dialog_delete_workout_message">¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.</string>
@@ -93,6 +94,88 @@
     <string name="lang_es">Español</string>
     <string name="lang_it">Italiano</string>
 
+    <string name="error_bluetooth_disabled">Bluetooth desactivado. Por favor, actívalo.</string>
+    <string name="error_no_rower_selected">Sin remo conectado. Selecciona primero el hardware.</string>
+    <string name="error_rower_connection_failed">Error al conectar con el remo: %1$s</string>
+
+    <!-- About Screen -->
+    <string name="title_about">Acerca de SyncRow</string>
+    <string name="about_description">SyncRow es una potente aplicación de remo Android de código abierto diseñada para conectar el hardware de remo interior con plataformas fitness modernas como Strava. Sin suscripciones, sin anuncios, solo datos.</string>
+    <string name="btn_visit_homepage">VISITAR PÁGINA WEB</string>
+    <string name="btn_visit_github">VER EN GITHUB</string>
+    <string name="label_version">Versión %1$s</string>
+
+    <!-- Training Feature -->
+    <string name="title_training_plans">Planes de entrenamiento</string>
+    <string name="title_create_plan">Crear plan</string>
+    <string name="title_edit_plan">Editar plan</string>
+    <string name="cd_create_plan">Crear plan</string>
+    <string name="cd_sort">Ordenar</string>
+    <string name="cd_filter">Filtrar</string>
+    <string name="cd_reset_filters">Restablecer filtros</string>
+    <string name="cd_favorite">Favorito</string>
+    <string name="cd_copy">Copiar</string>
+    <string name="cd_delete">Eliminar</string>
+    <string name="cd_remove_block">Eliminar bloque</string>
+    <string name="cd_remove_segment">Eliminar segmento</string>
+    <string name="cd_add_target">Añadir objetivo</string>
+    <string name="cd_remove_target">Eliminar objetivo</string>
+
+    <string name="label_no_plans">No se encontraron planes de entrenamiento que coincidan con el filtro.</string>
+    <string name="label_plan_name">Nombre del plan</string>
+    <string name="label_description">Descripción</string>
+    <string name="label_difficulty">Dificultad</string>
+    <string name="label_intensity">Intensidad</string>
+    <string name="label_block_name">Nombre del bloque</string>
+    <string name="label_repeats">Repeticiones</string>
+    <string name="label_segments">Segmentos</string>
+    <string name="label_targets">Objetivos</string>
+    <string name="label_meters">Metros</string>
+    <string name="label_duration">Duración</string>
+    <string name="label_min">min</string>
+    <string name="label_sec">seg</string>
+    <string name="label_set_duration">Establecer duración</string>
+
+    <string name="btn_add_block">Añadir bloque</string>
+    <string name="btn_add_segment">Añadir segmento</string>
+    <string name="btn_add_target">Añadir objetivo</string>
+    <string name="btn_save_plan">Guardar</string>
+    <string name="btn_ok">OK</string>
+    <string name="btn_cancel_dialog">Cancelar</string>
+    <string name="btn_skip">OMITIR</string>
+
+    <string name="target_spm">Cadencia (SPM)</string>
+    <string name="target_watts">Potencia (vatios)</string>
+    <string name="target_hr">Frecuencia cardíaca</string>
+    <string name="target_pace">Ritmo (/500m)</string>
+
+    <string name="filter_all">Todos</string>
+    <string name="filter_favorites">Favoritos</string>
+    <string name="difficulty_beginner">Principiante</string>
+    <string name="difficulty_intermediate">Intermedio</string>
+    <string name="difficulty_advanced">Avanzado</string>
+    <string name="intensity_low">Baja</string>
+    <string name="intensity_medium">Media</string>
+    <string name="intensity_hard">Alta</string>
+
+    <string name="sort_difficulty_asc">Dificultad (Principiante-Avanzado)</string>
+    <string name="sort_difficulty_desc">Dificultad (Avanzado-Principiante)</string>
+    <string name="sort_name">Nombre</string>
+    <string name="sort_intensity">Intensidad</string>
+    <string name="sort_date">Fecha de creación</string>
+    <string name="sort_duration_desc">Duración total (Mayor)</string>
+    <string name="sort_duration_asc">Duración total (Menor)</string>
+
+    <string name="block_title">Bloque %1$d</string>
+
+    <string name="segment_type_active">Activo</string>
+    <string name="segment_type_recovery">Recuperación</string>
+    <string name="segment_type_warmup">Calentamiento</string>
+    <string name="segment_type_cooldown">Enfriamiento</string>
+
+    <string name="duration_type_time">Tiempo</string>
+    <string name="duration_type_distance">Distancia</string>
+
     <string name="dialog_delete_plan_title">Eliminar plan de entrenamiento</string>
     <string name="dialog_delete_plan_message">¿Estás seguro de que quieres eliminar este plan de entrenamiento? Esta acción no se puede deshacer.</string>
 
@@ -108,8 +191,29 @@
     <string name="label_auto_upload">Subida automática</string>
     <string name="description_auto_upload">Sincroniza automáticamente tus entrenamientos finalizados con Strava.</string>
 
+    <!-- Share Plan -->
+    <string name="cd_share_plan">Compartir plan</string>
+    <string name="cd_import_plan">Importar plan</string>
+    <string name="title_share_plan">Compartir plan de entrenamiento</string>
+
     <!-- Cloud Sync -->
     <string name="label_cloud_sync_settings">Copia de seguridad y sincronización en la nube</string>
     <string name="label_cloud_sync">Sincroniza tu perfil con la nube</string>
     <string name="description_cloud_sync">Haz una copia de seguridad de tu perfil y tus entrenamientos de forma segura en la nube para sincronizarlos en todos tus dispositivos.</string>
+    <string name="btn_sign_in_google">Iniciar sesión con Google</string>
+    <string name="label_sync_mode">Modo de sincronización</string>
+    <string name="sync_mode_anon">Copia de seguridad en la nube (solo este dispositivo)</string>
+    <string name="sync_mode_google">Sincronización entre dispositivos (cuenta Google)</string>
+    <string name="description_sync_mode">La sincronización anónima mantiene los datos respaldados para esta instalación. La sincronización de Google permite compartir tu historial entre tus dispositivos.</string>
+    <string name="cloud_checking_data">Buscando datos en la nube…</string>
+    <string name="cloud_restore_success">¡Datos de la nube restaurados con éxito!</string>
+    <string name="cloud_google_sync_success">¡Cuenta sincronizada con Google!</string>
+    <string name="cloud_link_failed">Error al vincular la cuenta: %1$s</string>
+
+    <!-- Training Plan Messages -->
+    <string name="training_plan_imported">¡Plan de entrenamiento importado con éxito!</string>
+    <string name="training_plan_import_failed">Error al importar el plan de entrenamiento. Comprueba el formato del archivo.</string>
+
+    <!-- Split Messages -->
+    <string name="split_recorded">Split %1$d: %2$d m en %3$s (%4$s/500m)</string>
 </resources>
